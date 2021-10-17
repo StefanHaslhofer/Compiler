@@ -40,8 +40,6 @@ public abstract class CompilerTestCaseSupport {
 	private List<String> runInputs = new ArrayList<String>();
 	private List<String> expectedOutputs = new ArrayList<String>();
 
-	@Rule
-	public Timeout globalTimeout = Timeout.millis(Configuration.DEFAULT_TIMEOUT);
 
 	@Before
 	public void setUp() {

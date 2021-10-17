@@ -1,0 +1,23 @@
+
+`	java:S112o"FDefine and throw a dedicated exception instead of using a generic one.(“…¿üÿÿÿÿ
+t	java:S115"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(«êÿùÿÿÿÿ
+t	java:S115"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(«êÿùÿÿÿÿ
+t	java:S115"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(«êÿùÿÿÿÿ
+t	java:S115"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(«êÿùÿÿÿÿ
+t	java:S115"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(«êÿùÿÿÿÿ
+ˆ
+java:S13199"rThe type of the "locals" object should be an interface such as "List" rather than the implementation "LinkedList".(ã¶ô
+k
+java:S1104"PMake type a static final constant or non-public and provide accessors if needed.(ñœ¸úÿÿÿÿ
+e
+java:S1104#"OMake val a static final constant or non-public and provide accessors if needed.(Ô¸úÏ
+e
+java:S1104'"OMake adr a static final constant or non-public and provide accessors if needed.(ÌëÕÔ
+g
+java:S1104+"QMake level a static final constant or non-public and provide accessors if needed.(Ì–íï
+g
+java:S1104/"QMake nPars a static final constant or non-public and provide accessors if needed.(í ï
+p
+java:S11043"UMake hasVarArg a static final constant or non-public and provide accessors if needed.(Æ²§ÿÿÿÿÿ
+h
+java:S11049"RMake locals a static final constant or non-public and provide accessors if needed.(ã¶ô

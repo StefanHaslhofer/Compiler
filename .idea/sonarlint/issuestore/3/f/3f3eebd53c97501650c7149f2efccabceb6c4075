@@ -1,0 +1,43 @@
+
+Q
+java:S2479":Remove the non-escaped \u0009 character from this literal.(’íÊÚ
+d
+java:S1192Î"NDefine a constant instead of duplicating this literal "    print(n);" 4 times.(½Ìô
+t
+java:S1192ö"XDefine a constant instead of duplicating this literal "    iarr = new int[10];" 3 times.(ı¬±ÿÿÿÿÿ
+j
+java:S1192­"SDefine a constant instead of duplicating this literal "  class B { A a; }" 4 times.(µ‹­Ó
+o
+java:S1192®"SDefine a constant instead of duplicating this literal "  class C { B b; }" 3 times.(ãè¢´üÿÿÿÿ
+v
+java:S1192Œ"ZDefine a constant instead of duplicating this literal "  void main() int[] ia; {" 3 times.(ÛŸ¼®ûÿÿÿÿ
+c
+java:S1192-"MDefine a constant instead of duplicating this literal "program Test" 6 times.(Ñ¿…ç
+j
+java:S1192†"NDefine a constant instead of duplicating this literal "  void main()" 8 times.(°ÜĞÒùÿÿÿÿ
+n
+java:S1192“"RDefine a constant instead of duplicating this literal "program ConstDecl" 3 times.(ÀúÎÖûÿÿÿÿ
+t
+java:S1192ñ"]Define a constant instead of duplicating this literal "  int method() { return 0; }" 5 times.(Œé€Ø
+r
+java:S1192w"WDefine a constant instead of duplicating this literal "  final int max = 12;" 12 times.(ğ‚’©ûÿÿÿÿ
+k
+java:S1192#"PDefine a constant instead of duplicating this literal "  void main() {" 3 times.(›Óêàúÿÿÿÿ
+f
+java:S1192""PDefine a constant instead of duplicating this literal "program Test {" 28 times.(¦Úñ‚
+f
+java:S1192"ODefine a constant instead of duplicating this literal "    b = new B;" 3 times.(ÂÌ±
+f
+java:S1192{"PDefine a constant instead of duplicating this literal "  void main ()" 16 times.(€åå£
+t
+java:S1192y"YDefine a constant instead of duplicating this literal "  class B { int x, y; }" 12 times.(·Ã›èøÿÿÿÿ
+v
+java:S1192Ç"_Define a constant instead of duplicating this literal "  void main() int i; char c; {" 3 times.(Äõşè
+t
+java:S1192ò"XDefine a constant instead of duplicating this literal "  void main() int i; {" 10 times.(Äœ®Åşÿÿÿÿ
+x
+java:S1192|"]Define a constant instead of duplicating this literal "    int[] iarr; B b; int n;" 12 times.(®’âãûÿÿÿÿ
+`
+java:S1192v"KDefine a constant instead of duplicating this literal "program A" 19 times.(îœ‹o
+m
+java:S1192x"RDefine a constant instead of duplicating this literal "  char c; int i;" 12 times.(ÌÁÒøÿÿÿÿ
