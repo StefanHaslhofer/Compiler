@@ -1,0 +1,13 @@
+
+Q
+java:S2479¤":Remove the non-escaped \u0009 character from this literal.(èí±à
+j
+java:S1192"TDefine a constant instead of duplicating this literal "{ void main() { } }" 4 times.(˜Şìß
+d
+java:S1192"NDefine a constant instead of duplicating this literal "program Test" 21 times.(Ñ¿…ç
+g
+java:S1192("QDefine a constant instead of duplicating this literal " void main() { }" 6 times.(ÿô­×
+g
+java:S1192”"PDefine a constant instead of duplicating this literal "program Test {" 10 times.(’âé„
+n
+java:S1192•"WDefine a constant instead of duplicating this literal "  void main() int i; {" 3 times.(†ˆ÷â

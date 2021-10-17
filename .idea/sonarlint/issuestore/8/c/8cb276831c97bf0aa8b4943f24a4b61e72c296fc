@@ -1,0 +1,61 @@
+
+q
+java:S1192"ODefine a constant instead of duplicating this literal "Program Test:" 33 times.(„¢š½üÿÿÿÿ8ÏïåóÈ/
+r
+java:S1192é"TDefine a constant instead of duplicating this literal "{ void main() { } }" 5 times.(×‘«©8ÏïåóÈ/
+|
+java:S1192"^Define a constant instead of duplicating this literal "    Local Variable 2: int i3" 11 times.(¦ûˆÍ8ĞïåóÈ/
+q
+java:S1192¸"NDefine a constant instead of duplicating this literal "program Test " 3 times.(¡ó¤ùÿÿÿÿ8ĞïåóÈ/
+w
+java:S1192~"UDefine a constant instead of duplicating this literal "  class C { int i; }" 7 times.(´ñåÁüÿÿÿÿ8ĞïåóÈ/
+p
+java:S1192"NDefine a constant instead of duplicating this literal "program Test" 27 times.(¡ó¤ùÿÿÿÿ8ÑïåóÈ/
+r
+java:S1192å"ODefine a constant instead of duplicating this literal "    int error;" 3 times.(·ıÎøÿÿÿÿ8ÑïåóÈ/
+l
+java:S1192V"ODefine a constant instead of duplicating this literal "  void main()" 14 times.(€åå£8ÑïåóÈ/
+u
+java:S1192¿"RDefine a constant instead of duplicating this literal "  void main() {  " 4 times.(›Óêàúÿÿÿÿ8ÑïåóÈ/
+l
+java:S1192¹"IDefine a constant instead of duplicating this literal "  int x;" 3 times.(‹‘ÜØúÿÿÿÿ8ÒïåóÈ/
+|
+java:S1192<"_Define a constant instead of duplicating this literal "    Local Variable 2: int[] ia" 4 times.(¬â÷ú8ÒïåóÈ/
+m
+java:S1192"KDefine a constant instead of duplicating this literal "    int i;" 3 times.(“œÜ¾şÿÿÿÿ8ÒïåóÈ/
+p
+java:S1192n"SDefine a constant instead of duplicating this literal "  Type C: class(1)" 7 times.(Ÿø ÷8ÓïåóÈ/
+€
+java:S1192r"^Define a constant instead of duplicating this literal "    Local Variable 1: int i2" 13 times.(”‘©úÿÿÿÿ8ÓïåóÈ/
+u
+java:S11924"SDefine a constant instead of duplicating this literal "  void main() { }" 11 times.(–¢âùÿÿÿÿ8ÓïåóÈ/
+
+java:S1192æ"dDefine a constant instead of duplicating this literal "  void main() int i1, i2, i3, i4; {" 9 times.(İåö8ÔïåóÈ/
+
+java:S1192;"]Define a constant instead of duplicating this literal "    Local Variable 1: char c" 7 times.(ÛÎ¨Şÿÿÿÿÿ8ÔïåóÈ/
+
+java:S1192:"]Define a constant instead of duplicating this literal "    Local Variable 0: int i" 14 times.(Ì¥–³ùÿÿÿÿ8ÕïåóÈ/
+o
+java:S1192_"MDefine a constant instead of duplicating this literal "    i1 = i2;" 3 times.(ƒ©—Ôşÿÿÿÿ8ÕïåóÈ/
+q
+java:S1192"NDefine a constant instead of duplicating this literal "    if (1>2);" 3 times.(š“ÿÿÿÿÿ8ÕïåóÈ/
+j
+java:S1192Ë"LDefine a constant instead of duplicating this literal "      i1++;" 4 times.(›öÕì8ÖïåóÈ/
+s
+java:S1192ã"PDefine a constant instead of duplicating this literal "  void main() {" 6 times.(›Óêàúÿÿÿÿ8ÖïåóÈ/
+
+java:S1192‘"^Define a constant instead of duplicating this literal "    Local Variable 3: int i4" 11 times.(î†ÓÒÿÿÿÿÿ8ÖïåóÈ/
+g
+java:S1192Ò"IDefine a constant instead of duplicating this literal "    int " 5 times.(×ÿì‰8×ïåóÈ/
+n
+java:S1192å"PDefine a constant instead of duplicating this literal "program Test {" 27 times.(¦Úñ‚8×ïåóÈ/
+€
+java:S1192o"^Define a constant instead of duplicating this literal "    Local Variable 0: int i1" 14 times.(±ôáµùÿÿÿÿ8×ïåóÈ/
+z
+java:S1192"XDefine a constant instead of duplicating this literal "  Method: void main(0)" 34 times.(…°¶¾ÿÿÿÿÿ8ØïåóÈ/
+c
+java:S1192·"FDefine a constant instead of duplicating this literal "    }" 8 times.(®—«o8ØïåóÈ/
+f
+java:S1192Ü"HDefine a constant instead of duplicating this literal ": int i" 3 times.(¦ÊçÍ8ÙïåóÈ/
+n
+java:S1192"LDefine a constant instead of duplicating this literal "    char c;" 3 times.(ÕÄ±•ûÿÿÿÿ8ÙïåóÈ/

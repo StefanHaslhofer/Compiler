@@ -7,6 +7,7 @@ import ssw.mj.Token;
 import java.io.IOException;
 import java.io.Reader;
 
+import static ssw.mj.Errors.Message.INVALID_CHAR;
 import static ssw.mj.Token.Kind.*;
 
 public final class ScannerImpl extends Scanner {
@@ -22,7 +23,7 @@ public final class ScannerImpl extends Scanner {
      */
     @Override
     public Token next() {
-        while (Character.isWhitespace(ch) || ch == '\t' || ch == LF) {
+        while (Character.isWhitespace(ch) || ch == '\t' || ch == LF || (col == 0 && ch == 0)) {
             nextCh(); // skip white space and tabulator
         }
         Token t = new Token(none, line, col);
@@ -45,9 +46,9 @@ public final class ScannerImpl extends Scanner {
             case '/':
                 nextCh();
                 if (ch == '*') {
-                    skipComment();
+                    skipComment(t);
+                    t = next();
                 }
-                nextCh();
                 break;
             case ';':
                 t.kind = semicolon;
@@ -66,11 +67,10 @@ public final class ScannerImpl extends Scanner {
                 break;
             default:
                 // fill ch and restart method if no character has been read yet
+                error(t, INVALID_CHAR, ch);
                 nextCh();
-                t = next();
                 break;
         }
-
 
         return t;
     }
@@ -92,14 +92,16 @@ public final class ScannerImpl extends Scanner {
     /**
      * iterates over chars until end of comment is reached
      */
-    private void skipComment() {
+    private void skipComment(Token t) {
         int commentCount = 1;
         char lastCh = ' ';
 
         // iterate over comment block until comment counter is 0
         for (; commentCount > 0; nextCh()) {
             if (ch == EOF) {
-                errors.error(line, col, Errors.Message.EOF_IN_COMMENT);
+                t.kind = eof;
+                errors.error(t.line, t.col, Errors.Message.EOF_IN_COMMENT);
+                return;
             }
 
 

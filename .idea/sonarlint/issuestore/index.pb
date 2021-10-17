@@ -11,8 +11,6 @@ e
 5MicroJava Compiler/.settings/org.eclipse.jdt.ui.prefs,0\c\0c7861c2d773d7bc0f4e698188249cf7056329f6
 _
 /MicroJava Compiler/src/ssw/mj/codegen/Code.java,0\b\0bc0fa748f4ff514ca0a4badd42eafccd6109718
-b
-2MicroJava Compiler/src/ssw/mj/codegen/Decoder.java,c\1\c1415c519cedf3c5adf5e94a41ebf22fd6fe7473
 `
 0MicroJava Compiler/src/ssw/mj/codegen/Label.java,4\e\4e66d5304c3a22e8632c123c09a6275d2f1293ae
 b
@@ -77,3 +75,15 @@ H
 MicroJava Tests/.project,a\4\a49e33c271e2bdd49af208ba3b3aa0bc047baf75
 S
 #MicroJava Tests/MicroJava Tests.iml,2\7\27289c4ffedad6b85d4cde3de70c6a2b077ad3ce
+Y
+)MicroJava Compiler/src/ssw/mj/Parser.java,7\3\73aae81de39de22bd47c7fd82168b1af0a14e0fe
+c
+3MicroJava Tests/src/ssw/mj/test/ConcurrentTest.java,8\6\86f8f9745782e2c98e32384590537bcddff2a1f0
+d
+4MicroJava Tests/src/ssw/mj/test/SymbolTableTest.java,8\c\8cb276831c97bf0aa8b4943f24a4b61e72c296fc
+g
+7MicroJava Tests/src/ssw/mj/test/CodeGenerationTest.java,b\b\bb556a2c218960c5b006199070a6c868785976ac
+_
+/MicroJava Tests/src/ssw/mj/test/ParserTest.java,f\f\ffa3d2c20dc8e7bab1d860f3afab3396d483c4b2
+b
+2MicroJava Compiler/src/ssw/mj/codegen/Decoder.java,c\1\c1415c519cedf3c5adf5e94a41ebf22fd6fe7473
