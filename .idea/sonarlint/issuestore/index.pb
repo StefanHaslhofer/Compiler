@@ -15,8 +15,6 @@ _
 0MicroJava Compiler/src/ssw/mj/codegen/Label.java,4\e\4e66d5304c3a22e8632c123c09a6275d2f1293ae
 b
 2MicroJava Compiler/src/ssw/mj/codegen/Operand.java,5\c\5c0d245df46ea72732377797d07fd698eaa974a8
-`
-0MicroJava Compiler/src/ssw/mj/impl/CodeImpl.java,b\9\b97ec485afd747f370f17b626ba11bb6401efb35
 a
 1MicroJava Compiler/src/ssw/mj/impl/LabelImpl.java,8\a\8a971ca7c766975b27ba9bde27a9402397cc2c6c
 b
@@ -31,8 +29,6 @@ _
 0MicroJava Compiler/src/ssw/mj/symtab/Struct.java,a\5\a593d219ea04877f193047517b29643e8729a1a8
 ]
 -MicroJava Compiler/src/ssw/mj/symtab/Tab.java,c\5\c57ae4ac63bdfad8f2331ab6e300f43b63987f91
-^
-.MicroJava Compiler/src/ssw/mj/Interpreter.java,f\3\f394058b65d9dd61e7b9723b0925041302230a0e
 M
 MicroJava Compiler/.classpath,b\2\b2d42cba94b024f0291094d6155cea41ccc600e9
 K
@@ -83,3 +79,9 @@ _
 /MicroJava Tests/src/ssw/mj/test/ParserTest.java,f\f\ffa3d2c20dc8e7bab1d860f3afab3396d483c4b2
 b
 2MicroJava Compiler/src/ssw/mj/codegen/Decoder.java,c\1\c1415c519cedf3c5adf5e94a41ebf22fd6fe7473
+l
+<MicroJava Tests/src/ssw/mj/test/CompilerTestCaseSupport.java,4\4\440f7e7b18870d519fbb5b67a12258ab556f5f43
+V
+&MicroJava Compiler/src/ssw/mj/Run.java,e\0\e02fe31d7d380f1461c46683da92d137dca9923c
+Z
+*MicroJava Compiler/src/ssw/mj/Scanner.java,4\0\409d4c7262f221f6f932d9983df6578df4aeed92
