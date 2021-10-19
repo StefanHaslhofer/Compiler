@@ -6,11 +6,29 @@ import ssw.mj.Token;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
 
 import static ssw.mj.Errors.Message.INVALID_CHAR;
 import static ssw.mj.Token.Kind.*;
 
 public final class ScannerImpl extends Scanner {
+
+    private final Map<String, Token.Kind> keyWords = new HashMap<String, Token.Kind>() {{
+        put("break", break_);
+        put("class", class_);
+        put("else", else_);
+        put("final", final_);
+        put("if", if_);
+        put("new", new_);
+        put("print", print);
+        put("read", read);
+        put("program", program);
+        put("return", return_);
+        put("void", void_);
+        put("while", while_);
+        put("hash", hash);
+    }};
 
     public ScannerImpl(Reader r) {
         super(r);
@@ -76,10 +94,29 @@ public final class ScannerImpl extends Scanner {
     }
 
     /**
+     * return true if keyWords-map contains the method-parameter
+     */
+    private boolean isKeyWord(String word) {
+        return this.keyWords.containsKey(word);
+    }
+
+    /**
      * calls nextCh until name is fully read and updates token
      */
     private void readName(Token t) {
+        StringBuilder word = new StringBuilder();
+        // iterate over character stream unti a whitespace is reached
+        while (Character.isLetterOrDigit(ch)) {
+            word.append(ch);
+            nextCh();
+        }
 
+        if (isKeyWord(word.toString())) {
+            t.kind = this.keyWords.get(word.toString());
+        } else {
+            t.kind = ident;
+            t.str = word.toString();
+        }
     }
 
     /**
