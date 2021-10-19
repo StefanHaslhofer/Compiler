@@ -21,8 +21,6 @@ a
 1MicroJava Compiler/src/ssw/mj/impl/LabelImpl.java,8\a\8a971ca7c766975b27ba9bde27a9402397cc2c6c
 b
 2MicroJava Compiler/src/ssw/mj/impl/ParserImpl.java,1\7\173b7090757a30baa0c39a5c525f97b3ac57d4b5
-b
-2MicroJava Compiler/src/ssw/mj/impl/StructImpl.java,7\d\7db0df059a2ac5dc63da6220110820cd0758d54c
 _
 /MicroJava Compiler/src/ssw/mj/impl/TabImpl.java,2\0\2035ed692225ed11c8fc3cbead8c53887f4b1bfe
 ]
@@ -81,8 +79,6 @@ c
 3MicroJava Tests/src/ssw/mj/test/ConcurrentTest.java,8\6\86f8f9745782e2c98e32384590537bcddff2a1f0
 d
 4MicroJava Tests/src/ssw/mj/test/SymbolTableTest.java,8\c\8cb276831c97bf0aa8b4943f24a4b61e72c296fc
-g
-7MicroJava Tests/src/ssw/mj/test/CodeGenerationTest.java,b\b\bb556a2c218960c5b006199070a6c868785976ac
 _
 /MicroJava Tests/src/ssw/mj/test/ParserTest.java,f\f\ffa3d2c20dc8e7bab1d860f3afab3396d483c4b2
 b
