@@ -1,6 +1,5 @@
 package ssw.mj.impl;
 
-import ssw.mj.Errors;
 import ssw.mj.Scanner;
 import ssw.mj.Token;
 
@@ -9,31 +8,31 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ssw.mj.Errors.Message.INVALID_CHAR;
+import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
 
 public final class ScannerImpl extends Scanner {
 
-    private final Map<String, Token.Kind> keyWords = new HashMap<String, Token.Kind>() {{
-        put("break", break_);
-        put("class", class_);
-        put("else", else_);
-        put("final", final_);
-        put("if", if_);
-        put("new", new_);
-        put("print", print);
-        put("read", read);
-        put("program", program);
-        put("return", return_);
-        put("void", void_);
-        put("while", while_);
-        put("hash", hash);
-    }};
+    private final Map<String, Token.Kind> keyWords;
 
     public ScannerImpl(Reader r) {
         super(r);
         line = 1;
         col = 0;
+        keyWords = new HashMap<>();
+        keyWords.put("break", break_);
+        keyWords.put("class", class_);
+        keyWords.put("else", else_);
+        keyWords.put("final", final_);
+        keyWords.put("if", if_);
+        keyWords.put("new", new_);
+        keyWords.put("print", print);
+        keyWords.put("read", read);
+        keyWords.put("program", program);
+        keyWords.put("return", return_);
+        keyWords.put("void", void_);
+        keyWords.put("while", while_);
+        keyWords.put("hash", hash);
     }
 
     /**
@@ -61,11 +60,17 @@ public final class ScannerImpl extends Scanner {
             case '5': case '6': case '7': case '8': case '9':
                 readNumber(t);
                 break;
+            case '\'':
+                readCharConst(t);
+                nextCh();
+                break;
             case '/':
                 nextCh();
                 if (ch == '*') {
                     skipComment(t);
                     t = next();
+                } else {
+                    t.kind = slash;
                 }
                 break;
             case ';':
@@ -94,6 +99,56 @@ public final class ScannerImpl extends Scanner {
     }
 
     /**
+     * reads a character constant
+     */
+    private void readCharConst(Token t) {
+        boolean linebreak = false; // used to check if linebreak is present in quotes
+        nextCh(); // read next character
+
+        if (ch == '\'') { // empty char const ''
+            errors.error(t.line, t.col, EMPTY_CHARCONST);
+        } else if (ch == '\\') { // escape sequences
+            nextCh(); // next ch musst be either r, n, \ or whitespace
+            switch (ch) {
+                case 'r':
+                    t.kind = charConst;
+                    t.val = '\r';
+                    break;
+                case 'n':
+                    t.kind = charConst;
+                    t.val = '\n';
+                    break;
+                case '\\':
+                    t.kind = charConst;
+                    t.val = '\\';
+                    break;
+                case ' ':
+                    t.kind = charConst;
+                    t.val = ' ';
+                    break;
+                default:
+                    errors.error(t.line, t.col, UNDEFINED_ESCAPE, ch);
+                    break;
+            }
+        } else if (ch == LF) { // newline in charconst
+            errors.error(t.line, t.col, ILLEGAL_LINE_END);
+            linebreak = true;
+        } else {
+            t.val = ch; // set value if the character is valid
+        }
+
+        if (!linebreak) { // a linebreak also ends a charconst
+            nextCh();
+
+            if (ch != '\'') { // charconst must end with "'"
+                errors.error(t.line, t.col, MISSING_QUOTE);
+            }
+        }
+
+        t.kind = charConst;
+    }
+
+    /**
      * return true if keyWords-map contains the method-parameter
      */
     private boolean isKeyWord(String word) {
@@ -106,7 +161,7 @@ public final class ScannerImpl extends Scanner {
     private void readName(Token t) {
         StringBuilder word = new StringBuilder();
         // iterate over character stream unti a whitespace is reached
-        while (Character.isLetterOrDigit(ch)) {
+        while (Character.isLetterOrDigit(ch) || ch == '_') {
             word.append(ch);
             nextCh();
         }
@@ -132,29 +187,28 @@ public final class ScannerImpl extends Scanner {
     private void skipComment(Token t) {
         int commentCount = 1;
         char lastCh = ' ';
+        nextCh(); // skip first '*'
 
         // iterate over comment block until comment counter is 0
         for (; commentCount > 0; nextCh()) {
             if (ch == EOF) {
                 t.kind = eof;
-                errors.error(t.line, t.col, Errors.Message.EOF_IN_COMMENT);
+                errors.error(t.line, t.col, EOF_IN_COMMENT);
                 return;
             }
 
-
             if (lastCh == '*' && ch == '/') { // decrement counter if inner comment was closed
                 commentCount--;
+                if (commentCount > 0) {
+                    nextCh(); // skip next character because a comment marker consists of 2
+                }
+
             } else if (lastCh == '/' && ch == '*') { // increment counter if inner comment was found
                 commentCount++;
-            } else {
-                lastCh = ' ';
+                nextCh();
             }
 
-            if (ch == '/') { // slash could be the start of a new comment
-                lastCh = '/'; // safe possible comment start for next iteration
-            } else if (ch == '*') { // a star could be the end of an inner comment
-                lastCh = '*'; // safe possible comment end for next iteration
-            }
+            lastCh = ch; // save last character in order to recognize comment begin and end (both are two chars)
         }
     }
 
@@ -164,9 +218,10 @@ public final class ScannerImpl extends Scanner {
     private void nextCh() {
         try {
             ch = (char) in.read();
+
             if (ch == LF) {
-                line++;
-                col = 1;
+                line++; // increment line at newline
+                col = 0; // reset column at newline
             } else {
                 col++;
             }

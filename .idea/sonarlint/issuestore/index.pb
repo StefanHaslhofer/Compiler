@@ -79,9 +79,5 @@ _
 /MicroJava Tests/src/ssw/mj/test/ParserTest.java,f\f\ffa3d2c20dc8e7bab1d860f3afab3396d483c4b2
 b
 2MicroJava Compiler/src/ssw/mj/codegen/Decoder.java,c\1\c1415c519cedf3c5adf5e94a41ebf22fd6fe7473
-l
-<MicroJava Tests/src/ssw/mj/test/CompilerTestCaseSupport.java,4\4\440f7e7b18870d519fbb5b67a12258ab556f5f43
 V
 &MicroJava Compiler/src/ssw/mj/Run.java,e\0\e02fe31d7d380f1461c46683da92d137dca9923c
-Z
-*MicroJava Compiler/src/ssw/mj/Scanner.java,4\0\409d4c7262f221f6f932d9983df6578df4aeed92
