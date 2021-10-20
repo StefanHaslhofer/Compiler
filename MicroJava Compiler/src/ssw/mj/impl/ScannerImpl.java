@@ -193,11 +193,10 @@ public final class ScannerImpl extends Scanner {
                     nextCh();
                     if (ch == '.') {
                         t.kind = ppperiod;
-                        nextCh();
                     } else {
                         t.kind = pperiod;
-                        nextCh();
                     }
+                    nextCh();
                 } else {
                     t.kind = period;
                 }
