@@ -81,3 +81,13 @@ b
 2MicroJava Compiler/src/ssw/mj/codegen/Decoder.java,c\1\c1415c519cedf3c5adf5e94a41ebf22fd6fe7473
 V
 &MicroJava Compiler/src/ssw/mj/Run.java,e\0\e02fe31d7d380f1461c46683da92d137dca9923c
+^
+.MicroJava Compiler/src/ssw/mj/Interpreter.java,f\3\f394058b65d9dd61e7b9723b0925041302230a0e
+J
+MicroJava Tests/.gitignore,f\5\f568e1c491fc10d30d2b986e318e07348ffc33c8
+M
+MicroJava Compiler/.gitignore,9\8\980f5266da2deadf346c302c70c6972220038e4b
+`
+0MicroJava Compiler/src/ssw/mj/impl/CodeImpl.java,b\9\b97ec485afd747f370f17b626ba11bb6401efb35
+g
+7MicroJava Tests/src/ssw/mj/test/CodeGenerationTest.java,b\b\bb556a2c218960c5b006199070a6c868785976ac

@@ -5,7 +5,9 @@ import ssw.mj.Token;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static ssw.mj.Errors.Message.*;
@@ -14,6 +16,8 @@ import static ssw.mj.Token.Kind.*;
 public final class ScannerImpl extends Scanner {
 
     private final Map<String, Token.Kind> keyWords;
+    private static final int ASCII_ZERO = 48; // integer value of '0' is 48
+    private static final int MAX_INT_WITHOUT_LAST_POINT = 2147483640;
 
     public ScannerImpl(Reader r) {
         super(r);
@@ -60,9 +64,18 @@ public final class ScannerImpl extends Scanner {
             case '5': case '6': case '7': case '8': case '9':
                 readNumber(t);
                 break;
+            case '-':
+                nextCh();
+                if (ch == '=') {
+                    t.kind = minusas;
+                } else if (ch == '-') {
+                    t.kind = mminus;
+                } else {
+                    t.kind = minus;
+                }
+                break;
             case '\'':
                 readCharConst(t);
-                nextCh();
                 break;
             case '/':
                 nextCh();
@@ -142,6 +155,9 @@ public final class ScannerImpl extends Scanner {
 
             if (ch != '\'') { // charconst must end with "'"
                 errors.error(t.line, t.col, MISSING_QUOTE);
+                t.val = '\0';
+            } else {
+                nextCh();
             }
         }
 
@@ -178,7 +194,35 @@ public final class ScannerImpl extends Scanner {
      * calls nextCh until number is fully read and updates token
      */
     private void readNumber(Token t) {
+        List<Integer> numbers = new ArrayList<>();
+        StringBuilder stringValue = new StringBuilder();
 
+        while (Character.isDigit(ch)) {
+            numbers.add(ch - ASCII_ZERO); // numbers from 0 to 9 start ah 48, e.g. '0' - 48 = 0
+            stringValue.append(ch);
+            nextCh();
+        }
+
+        // if a number has more than 10 digits it is too large
+        if (numbers.size() > 10) {
+            errors.error(t.line, t.col, BIG_NUM, stringValue.toString());
+        } else {
+            for (int i = 0; i < numbers.size(); i++) {
+                // if the number has exactle 10 digits and is bigger than a certain value
+                // its last digit must be smaller than 8
+                if (numbers.size() == 10 && i == numbers.size() - 1
+                        && t.val >= MAX_INT_WITHOUT_LAST_POINT && numbers.get(i) >= 8) {
+                    errors.error(t.line, t.col, BIG_NUM, stringValue.toString());
+                    t.val = 0;
+                } else {
+                    // multiply number with 10 times the the inverted position in the list
+                    // e.g. 123 = 1 * 10^2 + 2 * 10 + 3 * 1
+                    t.val += numbers.get(i) * Math.pow(10, numbers.size() - 1.0 - i);
+                }
+
+            }
+        }
+        t.kind = number;
     }
 
     /**
@@ -200,7 +244,7 @@ public final class ScannerImpl extends Scanner {
             if (lastCh == '*' && ch == '/') { // decrement counter if inner comment was closed
                 commentCount--;
                 if (commentCount > 0) {
-                    nextCh(); // skip next character because a comment marker consists of 2
+                    nextCh(); // skip next character because a comment marker consists of 2 ('*' + '/')
                 }
 
             } else if (lastCh == '/' && ch == '*') { // increment counter if inner comment was found
