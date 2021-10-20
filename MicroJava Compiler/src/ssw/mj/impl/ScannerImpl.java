@@ -115,11 +115,13 @@ public final class ScannerImpl extends Scanner {
      * reads a character constant
      */
     private void readCharConst(Token t) {
-        boolean linebreak = false; // used to check if linebreak is present in quotes
+        boolean endOfConst = false; // used to check if endOfConst is present in quotes
         nextCh(); // read next character
 
         if (ch == '\'') { // empty char const ''
             errors.error(t.line, t.col, EMPTY_CHARCONST);
+            endOfConst = true;
+            nextCh();
         } else if (ch == '\\') { // escape sequences
             nextCh(); // next ch musst be either r, n, \ or whitespace
             switch (ch) {
@@ -145,12 +147,12 @@ public final class ScannerImpl extends Scanner {
             }
         } else if (ch == LF) { // newline in charconst
             errors.error(t.line, t.col, ILLEGAL_LINE_END);
-            linebreak = true;
+            endOfConst = true;
         } else {
             t.val = ch; // set value if the character is valid
         }
 
-        if (!linebreak) { // a linebreak also ends a charconst
+        if (!endOfConst) { // a endOfConst also ends a charconst
             nextCh();
 
             if (ch != '\'') { // charconst must end with "'"
@@ -262,6 +264,10 @@ public final class ScannerImpl extends Scanner {
     private void nextCh() {
         try {
             ch = (char) in.read();
+
+            if (ch == '\r') { // read next character if we come accross CR
+                ch = (char) in.read();
+            }
 
             if (ch == LF) {
                 line++; // increment line at newline
