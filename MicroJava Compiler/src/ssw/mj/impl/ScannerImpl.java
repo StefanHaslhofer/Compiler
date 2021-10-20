@@ -248,8 +248,8 @@ public final class ScannerImpl extends Scanner {
 
         if (ch == '\'') { // empty char const ''
             errors.error(t.line, t.col, EMPTY_CHARCONST);
-            endOfConst = true;
             nextCh();
+            endOfConst = true; // charConst ends immediately when empty
         } else if (ch == '\\') { // escape sequences
             nextCh(); // next ch musst be either r, n, \ or whitespace
             switch (ch) {
@@ -269,18 +269,26 @@ public final class ScannerImpl extends Scanner {
                     t.kind = charConst;
                     t.val = ' ';
                     break;
+                case '\'': // missing quote will be handled later on
+                    t.kind = charConst;
+                    t.val = '\'';
+                    break;
                 default:
                     errors.error(t.line, t.col, UNDEFINED_ESCAPE, ch);
                     break;
             }
         } else if (ch == LF) { // newline in charconst
             errors.error(t.line, t.col, ILLEGAL_LINE_END);
-            endOfConst = true;
+            endOfConst = true; // charConst ends on line end
+        } else if (ch == EOF) {
+            t.kind = eof;
+            errors.error(t.line, t.col, EOF_IN_CHAR);
+            endOfConst = true; // charConst ends on end of file
         } else {
             t.val = ch; // set value if the character is valid
         }
 
-        if (!endOfConst) { // a endOfConst also ends a charconst
+        if (!endOfConst) { // an endOfConst also ends a charconst
             nextCh();
 
             if (ch != '\'') { // charconst must end with "'"
@@ -363,7 +371,7 @@ public final class ScannerImpl extends Scanner {
         char lastCh = ' ';
 
         // iterate over comment block until comment counter is 0
-        while(commentCount > 0) {
+        while (commentCount > 0) {
             if (ch == EOF) {
                 t.kind = eof;
                 errors.error(t.line, t.col, EOF_IN_COMMENT);
@@ -393,17 +401,19 @@ public final class ScannerImpl extends Scanner {
      */
     private void nextCh() {
         try {
-            ch = (char) in.read();
-
-            if (ch == '\r') { // read next character if we come accross CR
+            if (ch != EOF) { // only incrment line and col if end of file is not reached
                 ch = (char) in.read();
-            }
 
-            if (ch == LF) {
-                line++; // increment line at newline
-                col = 0; // reset column at newline
-            } else {
-                col++;
+                if (ch == '\r') { // read next character if we come across CR
+                    ch = (char) in.read();
+                }
+
+                if (ch == LF) {
+                    line++; // increment line at newline
+                    col = 0; // reset column at newline
+                } else {
+                    col++;
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
