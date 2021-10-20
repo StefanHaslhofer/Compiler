@@ -253,23 +253,18 @@ public final class ScannerImpl extends Scanner {
             nextCh(); // next ch musst be either r, n, \ or whitespace
             switch (ch) {
                 case 'r':
-                    t.kind = charConst;
                     t.val = '\r';
                     break;
                 case 'n':
-                    t.kind = charConst;
                     t.val = '\n';
                     break;
                 case '\\':
-                    t.kind = charConst;
                     t.val = '\\';
                     break;
                 case ' ':
-                    t.kind = charConst;
                     t.val = ' ';
                     break;
                 case '\'': // missing quote will be handled later on
-                    t.kind = charConst;
                     t.val = '\'';
                     break;
                 default:
@@ -280,7 +275,6 @@ public final class ScannerImpl extends Scanner {
             errors.error(t.line, t.col, ILLEGAL_LINE_END);
             endOfConst = true; // charConst ends on line end
         } else if (ch == EOF) {
-            t.kind = eof;
             errors.error(t.line, t.col, EOF_IN_CHAR);
             endOfConst = true; // charConst ends on end of file
         } else {
