@@ -36,7 +36,6 @@ public final class ScannerImpl extends Scanner {
         keyWords.put("return", return_);
         keyWords.put("void", void_);
         keyWords.put("while", while_);
-        keyWords.put("hash", hash);
     }
 
     /**
@@ -68,30 +67,148 @@ public final class ScannerImpl extends Scanner {
                 nextCh();
                 if (ch == '=') {
                     t.kind = minusas;
+                    nextCh();
                 } else if (ch == '-') {
                     t.kind = mminus;
+                    nextCh();
                 } else {
                     t.kind = minus;
                 }
                 break;
-            case '\'':
-                readCharConst(t);
+            case '+':
+                nextCh();
+                if (ch == '=') {
+                    t.kind = plusas;
+                    nextCh();
+                } else if (ch == '+') {
+                    t.kind = pplus;
+                    nextCh();
+                } else {
+                    t.kind = plus;
+                }
                 break;
             case '/':
                 nextCh();
                 if (ch == '*') {
                     skipComment(t);
                     t = next();
+                } else if (ch == '=') {
+                    t.kind = slashas;
+                    nextCh();
                 } else {
                     t.kind = slash;
                 }
+                break;
+            case '*':
+                nextCh();
+                if (ch == '=') {
+                    t.kind = timesas;
+                    nextCh();
+                } else {
+                    t.kind = times;
+                }
+                nextCh();
+                break;
+            case '%':
+                nextCh();
+                if (ch == '=') {
+                    t.kind = remas;
+                    nextCh();
+                } else {
+                    t.kind = rem;
+                }
+                break;
+            case '=':
+                nextCh();
+                if (ch == '=') {
+                    t.kind = eql;
+                    nextCh();
+                } else {
+                    t.kind = assign;
+                }
+                break;
+            case '!':
+                nextCh();
+                if (ch == '=') {
+                    t.kind = neq;
+                    nextCh();
+                } else {
+                    errors.error(t.line, t.col, INVALID_CHAR, '!');
+                }
+                break;
+            case '<':
+                nextCh();
+                if (ch == '=') {
+                    t.kind = leq;
+                    nextCh();
+                } else {
+                    t.kind = lss;
+                }
+                break;
+            case '>':
+                nextCh();
+                if (ch == '=') {
+                    t.kind = geq;
+                    nextCh();
+                } else {
+                    t.kind = gtr;
+                }
+                break;
+            case '&':
+                nextCh();
+                if (ch == '&') {
+                    t.kind = and;
+                    nextCh();
+                } else {
+                    errors.error(t.line, t.col, INVALID_CHAR, '&');
+                }
+                break;
+            case '|':
+                nextCh();
+                if (ch == '|') {
+                    t.kind = or;
+                    nextCh();
+                } else {
+                    errors.error(t.line, t.col, INVALID_CHAR, '|');
+                }
+                break;
+            case '\'':
+                readCharConst(t);
                 break;
             case ';':
                 t.kind = semicolon;
                 nextCh();
                 break;
-            case EOF:
-                t.kind = eof;
+            case ',':
+                t.kind = comma;
+                nextCh();
+                break;
+            case '#':
+                t.kind = hash;
+                nextCh();
+                break;
+            case '.':
+                nextCh();
+                if (ch == '.') {
+                    nextCh();
+                    if (ch == '.') {
+                        t.kind = ppperiod;
+                        nextCh();
+                    } else {
+                        t.kind = pperiod;
+                        nextCh();
+                    }
+                } else {
+                    t.kind = period;
+                }
+                break;
+            case '(':
+                t.kind = lpar;
+                nextCh();
+                break;
+            case ')':
+                t.kind = rpar;
+                nextCh();
                 break;
             case '{':
                 t.kind = lbrace;
@@ -100,6 +217,17 @@ public final class ScannerImpl extends Scanner {
             case '}':
                 t.kind = rbrace;
                 nextCh();
+                break;
+            case '[':
+                t.kind = lbrack;
+                nextCh();
+                break;
+            case ']':
+                t.kind = rbrack;
+                nextCh();
+                break;
+            case EOF:
+                t.kind = eof;
                 break;
             default:
                 // fill ch and restart method if no character has been read yet
@@ -233,14 +361,15 @@ public final class ScannerImpl extends Scanner {
     private void skipComment(Token t) {
         int commentCount = 1;
         char lastCh = ' ';
-        nextCh(); // skip first '*'
 
         // iterate over comment block until comment counter is 0
-        for (; commentCount > 0; nextCh()) {
+        while(commentCount > 0) {
             if (ch == EOF) {
                 t.kind = eof;
                 errors.error(t.line, t.col, EOF_IN_COMMENT);
                 return;
+            } else {
+                nextCh(); // skipt first '*' therefore call method at the start of the loop
             }
 
             if (lastCh == '*' && ch == '/') { // decrement counter if inner comment was closed
@@ -248,7 +377,6 @@ public final class ScannerImpl extends Scanner {
                 if (commentCount > 0) {
                     nextCh(); // skip next character because a comment marker consists of 2 ('*' + '/')
                 }
-
             } else if (lastCh == '/' && ch == '*') { // increment counter if inner comment was found
                 commentCount++;
                 nextCh();
@@ -256,6 +384,8 @@ public final class ScannerImpl extends Scanner {
 
             lastCh = ch; // save last character in order to recognize comment begin and end (both are two chars)
         }
+
+        nextCh();
     }
 
     /**
