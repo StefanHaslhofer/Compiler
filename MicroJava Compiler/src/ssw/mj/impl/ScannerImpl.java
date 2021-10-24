@@ -308,7 +308,8 @@ public final class ScannerImpl extends Scanner {
     private void readName(Token t) {
         StringBuilder word = new StringBuilder();
         // iterate over character stream unti a whitespace is reached
-        while (Character.isLetterOrDigit(ch) || ch == '_') {
+        while ((ch >= 48 && ch <= 57) || (ch >= 65 && ch<= 90)
+                || (ch >= 97 && ch <= 122) || ch == '_') {
             word.append(ch);
             nextCh();
         }

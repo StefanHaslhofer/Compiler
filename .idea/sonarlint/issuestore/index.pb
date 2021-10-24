@@ -91,3 +91,5 @@ M
 0MicroJava Compiler/src/ssw/mj/impl/CodeImpl.java,b\9\b97ec485afd747f370f17b626ba11bb6401efb35
 g
 7MicroJava Tests/src/ssw/mj/test/CodeGenerationTest.java,b\b\bb556a2c218960c5b006199070a6c868785976ac
+X
+(MicroJava Compiler/src/ssw/mj/Token.java,f\4\f4dadf0b695ea65963ceffe67e2ba29f4ca1d466
