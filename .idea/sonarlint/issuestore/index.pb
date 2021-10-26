@@ -17,8 +17,6 @@ b
 2MicroJava Compiler/src/ssw/mj/codegen/Operand.java,5\c\5c0d245df46ea72732377797d07fd698eaa974a8
 a
 1MicroJava Compiler/src/ssw/mj/impl/LabelImpl.java,8\a\8a971ca7c766975b27ba9bde27a9402397cc2c6c
-b
-2MicroJava Compiler/src/ssw/mj/impl/ParserImpl.java,1\7\173b7090757a30baa0c39a5c525f97b3ac57d4b5
 _
 /MicroJava Compiler/src/ssw/mj/impl/TabImpl.java,2\0\2035ed692225ed11c8fc3cbead8c53887f4b1bfe
 ]
@@ -69,8 +67,6 @@ H
 MicroJava Tests/.project,a\4\a49e33c271e2bdd49af208ba3b3aa0bc047baf75
 S
 #MicroJava Tests/MicroJava Tests.iml,2\7\27289c4ffedad6b85d4cde3de70c6a2b077ad3ce
-Y
-)MicroJava Compiler/src/ssw/mj/Parser.java,7\3\73aae81de39de22bd47c7fd82168b1af0a14e0fe
 c
 3MicroJava Tests/src/ssw/mj/test/ConcurrentTest.java,8\6\86f8f9745782e2c98e32384590537bcddff2a1f0
 d
@@ -91,5 +87,3 @@ M
 0MicroJava Compiler/src/ssw/mj/impl/CodeImpl.java,b\9\b97ec485afd747f370f17b626ba11bb6401efb35
 g
 7MicroJava Tests/src/ssw/mj/test/CodeGenerationTest.java,b\b\bb556a2c218960c5b006199070a6c868785976ac
-X
-(MicroJava Compiler/src/ssw/mj/Token.java,f\4\f4dadf0b695ea65963ceffe67e2ba29f4ca1d466
