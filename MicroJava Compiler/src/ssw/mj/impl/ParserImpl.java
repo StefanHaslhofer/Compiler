@@ -13,6 +13,7 @@ public final class ParserImpl extends Parser {
 
     private final EnumSet<Token.Kind> firstFactor = EnumSet.of(ident, number, charConst, new_, lpar);
     private final EnumSet<Token.Kind> firstMulop = EnumSet.of(times, slash, rem);
+    private final EnumSet<Token.Kind> firstRelop = EnumSet.of(eql, neq, leq, lss ,geq, gtr);
 
     // TODO Exercise 3 - 6: implementation of parser
     public ParserImpl(Scanner scanner) {
@@ -37,6 +38,28 @@ public final class ParserImpl extends Parser {
 
     private void actpars() {
 
+    }
+
+    private void condTerm() {
+        condFact();
+        while (sym == and) {
+            scan();
+            condFact();
+        }
+    }
+
+    private void condFact() {
+        expr();
+        relop();
+        expr();
+    }
+
+    private void relop() {
+        if(firstRelop.contains(sym)) {
+            scan();
+        } else {
+            error(TOKEN_EXPECTED, firstRelop);
+        }
     }
 
     private void expr() {
