@@ -6,7 +6,7 @@ import ssw.mj.Token;
 
 import java.util.EnumSet;
 
-import static ssw.mj.Errors.Message.TOKEN_EXPECTED;
+import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
 
 public final class ParserImpl extends Parser {
@@ -19,7 +19,6 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Token.Kind> firstStatement;
     private final EnumSet<Token.Kind> firstMethodDecl;
 
-    // TODO Exercise 3 - 6: implementation of parser
     public ParserImpl(Scanner scanner) {
         super(scanner);
 
@@ -81,7 +80,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 break;
             default:
-                error(TOKEN_EXPECTED, number, charConst);
+                error(CONST_DECL);
         }
         check(semicolon);
     }
@@ -119,7 +118,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 break;
             default:
-                error(TOKEN_EXPECTED, ident, void_);
+                error(METH_DECL);
         }
         check(ident);
         check(lpar);
@@ -145,7 +144,7 @@ public final class ParserImpl extends Parser {
             check(ident);
         }
 
-        if (sym == pperiod) {
+        if (sym == ppperiod) {
             scan();
         }
     }
@@ -182,7 +181,7 @@ public final class ParserImpl extends Parser {
                 } else if (sym == mminus) {
                     scan();
                 } else {
-                    error(TOKEN_EXPECTED, firstAssignop, lpar, pplus, mminus);
+                    error(DESIGN_FOLLOW);
                 }
                 check(semicolon);
                 break;
@@ -240,13 +239,15 @@ public final class ParserImpl extends Parser {
                 scan();
                 break;
             default:
-                error(TOKEN_EXPECTED, firstStatement);
+                error(INVALID_STAT);
         }
     }
 
     private void assignop() {
         if (firstAssignop.contains(sym)) {
             scan();
+        } else {
+            error(ASSIGN_OP);
         }
     }
 
@@ -262,7 +263,7 @@ public final class ParserImpl extends Parser {
         }
 
         if (sym == hash) {
-            scan();
+            varargs();
         }
         check(rpar);
     }
@@ -308,7 +309,7 @@ public final class ParserImpl extends Parser {
         if (firstRelop.contains(sym)) {
             scan();
         } else {
-            error(TOKEN_EXPECTED, firstRelop);
+            error(REL_OP);
         }
     }
 
@@ -363,7 +364,7 @@ public final class ParserImpl extends Parser {
                 check(rpar);
                 break;
             default:
-                error(TOKEN_EXPECTED, firstFactor);
+                error(INVALID_FACT);
         }
     }
 
@@ -386,7 +387,7 @@ public final class ParserImpl extends Parser {
         if (sym == plus || sym == minus) {
             scan();
         } else {
-            error(TOKEN_EXPECTED, plus, minus);
+            error(ADD_OP);
         }
     }
 
@@ -394,7 +395,7 @@ public final class ParserImpl extends Parser {
         if (sym == times || sym == slash || sym == rem) {
             scan();
         } else {
-            error(TOKEN_EXPECTED, times, slash, rem);
+            error(MUL_OP);
         }
     }
 
