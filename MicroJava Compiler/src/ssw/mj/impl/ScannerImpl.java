@@ -326,34 +326,20 @@ public final class ScannerImpl extends Scanner {
      * calls nextCh until number is fully read and updates token
      */
     private void readNumber(Token t) {
-        List<Integer> numbers = new ArrayList<>();
         StringBuilder stringValue = new StringBuilder();
 
         while (Character.isDigit(ch)) {
-            numbers.add(ch - ASCII_ZERO); // numbers from 0 to 9 start ah 48, e.g. '0' - 48 = 0
             stringValue.append(ch);
             nextCh();
         }
 
-        // if a number has more than 10 digits it is too large
-        if (numbers.size() > 10) {
+        try {
+            t.val = Integer.parseInt(stringValue.toString());
+        } catch (NumberFormatException ex) {
             errors.error(t.line, t.col, BIG_NUM, stringValue.toString());
-        } else {
-            for (int i = 0; i < numbers.size(); i++) {
-                // if the number has exactle 10 digits and is bigger than a certain value
-                // its last digit must be smaller than 8
-                if (numbers.size() == 10 && i == numbers.size() - 1
-                        && t.val >= MAX_INT_WITHOUT_LAST_POINT && numbers.get(i) >= 8) {
-                    errors.error(t.line, t.col, BIG_NUM, stringValue.toString());
-                    t.val = 0;
-                } else {
-                    // multiply number with 10 times the the inverted position in the list
-                    // e.g. 123 = 1 * 10^2 + 2 * 10 + 3 * 1
-                    t.val += numbers.get(i) * Math.pow(10, numbers.size() - 1.0 - i);
-                }
-
-            }
+            t.val = 0;
         }
+
         t.kind = number;
     }
 

@@ -87,3 +87,23 @@ M
 0MicroJava Compiler/src/ssw/mj/impl/CodeImpl.java,b\9\b97ec485afd747f370f17b626ba11bb6401efb35
 g
 7MicroJava Tests/src/ssw/mj/test/CodeGenerationTest.java,b\b\bb556a2c218960c5b006199070a6c868785976ac
+c
+3MicroJava Compiler/src/ssw/mj/impl/ScannerImpl.java,a\c\acfbf7a335edcf7198bda81ce0a380c58097a314
+Z
+*MicroJava Compiler/src/ssw/mj/Scanner.java,4\0\409d4c7262f221f6f932d9983df6578df4aeed92
+X
+(MicroJava Compiler/src/ssw/mj/Token.java,f\4\f4dadf0b695ea65963ceffe67e2ba29f4ca1d466
+Y
+)MicroJava Compiler/src/ssw/mj/Parser.java,7\3\73aae81de39de22bd47c7fd82168b1af0a14e0fe
+b
+2MicroJava Compiler/src/ssw/mj/impl/StructImpl.java,7\d\7db0df059a2ac5dc63da6220110820cd0758d54c
+[
++MicroJava Compiler/src/ssw/mj/Compiler.java,8\7\87c2e5e510a056d100ea31f95191be153e29b935
+Y
+)MicroJava Compiler/src/ssw/mj/Errors.java,b\7\b7267c625c123a748667c28faafdd8826ebba04d
+`
+0MicroJava Tests/src/ssw/mj/test/ScannerTest.java,b\1\b112c8d4d2ab93d7b53113af0f92acafa405210a
+l
+<MicroJava Tests/src/ssw/mj/test/CompilerTestCaseSupport.java,4\4\440f7e7b18870d519fbb5b67a12258ab556f5f43
+b
+2MicroJava Compiler/src/ssw/mj/impl/ParserImpl.java,1\7\173b7090757a30baa0c39a5c525f97b3ac57d4b5
