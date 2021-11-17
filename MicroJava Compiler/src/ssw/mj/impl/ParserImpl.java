@@ -1,5 +1,6 @@
 package ssw.mj.impl;
 
+import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token;
@@ -19,6 +20,11 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Token.Kind> firstStatement;
     private final EnumSet<Token.Kind> firstMethodDecl;
 
+    private final EnumSet<Token.Kind> recoverDeclSet;
+
+    private static int errDist = 3;
+    public static int errors = 0;
+
     public ParserImpl(Scanner scanner) {
         super(scanner);
 
@@ -30,6 +36,8 @@ public final class ParserImpl extends Parser {
         this.firstAssignop = EnumSet.of(assign, plusas, minusas, timesas, slashas, remas);
         this.firstStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, semicolon, lbrace);
         this.firstMethodDecl = EnumSet.of(ident, void_);
+
+        this.recoverDeclSet = EnumSet.of(final_, class_, eof, lbrace);
     }
 
     /**
@@ -42,25 +50,41 @@ public final class ParserImpl extends Parser {
         check(eof);
     }
 
+    public void error(Errors.Message msg, Object... msgParams) {
+        if (errDist >= 3) {
+            scanner.errors.error(la.line, la.col, msg, msgParams);
+            errors++;
+        }
+        errDist = 0;
+    }
+
+    private void recoverDecl() {
+        this.error(INVALID_DECL);
+        while (!recoverDeclSet.contains(sym)) {
+            scan();
+        }
+    }
+
     private void program() {
         check(program);
         check(ident);
 
-        while (sym == final_ || sym == ident || sym == class_) {
-            switch (sym) {
-                case final_:
-                    constDecl();
-                    break;
-                case ident:
-                    varDecl();
-                    break;
-                default:
-                    classDecl();
+        for (; ; ) {
+            if (sym == final_) {
+                constDecl();
+            } else if (sym == ident) {
+                varDecl();
+            } else if (sym == class_) {
+                classDecl();
+            } else if (sym == lbrace || sym == eof) {
+                break;
+            } else {
+                recoverDecl();
             }
         }
         check(lbrace);
 
-        while(firstMethodDecl.contains(sym)) {
+        while (firstMethodDecl.contains(sym)) {
             methodDecl();
         }
         check(rbrace);
@@ -80,15 +104,13 @@ public final class ParserImpl extends Parser {
                 scan();
                 break;
             default:
-                error(CONST_DECL);
+                super.error(CONST_DECL);
         }
         check(semicolon);
     }
 
     private void varDecl() {
-        if (sym == ident) {
-            type();
-        }
+        type();
         check(ident);
 
         while (sym == comma) {
@@ -118,7 +140,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 break;
             default:
-                error(METH_DECL);
+                super.error(METH_DECL);
         }
         check(ident);
         check(lpar);
@@ -181,7 +203,7 @@ public final class ParserImpl extends Parser {
                 } else if (sym == mminus) {
                     scan();
                 } else {
-                    error(DESIGN_FOLLOW);
+                    super.error(DESIGN_FOLLOW);
                 }
                 check(semicolon);
                 break;
@@ -239,7 +261,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 break;
             default:
-                error(INVALID_STAT);
+                super.error(INVALID_STAT);
         }
     }
 
@@ -247,7 +269,7 @@ public final class ParserImpl extends Parser {
         if (firstAssignop.contains(sym)) {
             scan();
         } else {
-            error(ASSIGN_OP);
+            super.error(ASSIGN_OP);
         }
     }
 
@@ -309,7 +331,7 @@ public final class ParserImpl extends Parser {
         if (firstRelop.contains(sym)) {
             scan();
         } else {
-            error(REL_OP);
+            super.error(REL_OP);
         }
     }
 
@@ -364,7 +386,7 @@ public final class ParserImpl extends Parser {
                 check(rpar);
                 break;
             default:
-                error(INVALID_FACT);
+                super.error(INVALID_FACT);
         }
     }
 
@@ -387,7 +409,7 @@ public final class ParserImpl extends Parser {
         if (sym == plus || sym == minus) {
             scan();
         } else {
-            error(ADD_OP);
+            super.error(ADD_OP);
         }
     }
 
@@ -395,7 +417,7 @@ public final class ParserImpl extends Parser {
         if (sym == times || sym == slash || sym == rem) {
             scan();
         } else {
-            error(MUL_OP);
+            super.error(MUL_OP);
         }
     }
 
@@ -406,6 +428,8 @@ public final class ParserImpl extends Parser {
         t = la;
         la = scanner.next();
         sym = la.kind;
+
+        errDist++;
     }
 
     /**
@@ -415,7 +439,7 @@ public final class ParserImpl extends Parser {
         if (sym == expected) {
             scan();
         } else {
-            error(TOKEN_EXPECTED, expected);
+            super.error(TOKEN_EXPECTED, expected);
         }
     }
 
