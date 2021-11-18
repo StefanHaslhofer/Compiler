@@ -20,6 +20,9 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Token.Kind> firstStatement;
     private final EnumSet<Token.Kind> firstMethodDecl;
 
+    private final EnumSet<Token.Kind> followMethodDecl;
+    private final EnumSet<Token.Kind> recoverMethodDeclSet;
+
     private final EnumSet<Token.Kind> recoverDeclSet;
 
     private static int errDist = 3;
@@ -37,7 +40,12 @@ public final class ParserImpl extends Parser {
         this.firstStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, semicolon, lbrace);
         this.firstMethodDecl = EnumSet.of(ident, void_);
 
-        this.recoverDeclSet = EnumSet.of(final_, class_, eof, lbrace);
+        this.followMethodDecl = EnumSet.copyOf(firstMethodDecl);
+        this.followMethodDecl.add(rbrace);
+
+        this.recoverDeclSet = EnumSet.of(final_, class_, eof, lbrace, ident);
+        this.recoverMethodDeclSet = EnumSet.copyOf(followMethodDecl);
+        this.recoverMethodDeclSet.add(eof);
     }
 
     /**
@@ -65,6 +73,13 @@ public final class ParserImpl extends Parser {
         }
     }
 
+    private void recoverMethodDecl() {
+        this.error(METH_DECL);
+        while (!recoverMethodDeclSet.contains(sym)) {
+            scan();
+        }
+    }
+
     private void program() {
         check(program);
         check(ident);
@@ -84,8 +99,14 @@ public final class ParserImpl extends Parser {
         }
         check(lbrace);
 
-        while (firstMethodDecl.contains(sym)) {
-            methodDecl();
+        for (; ; ) {
+            if (firstMethodDecl.contains(sym)) {
+                methodDecl();
+            } else if (sym == rbrace || sym == eof) {
+                break;
+            } else {
+                recoverMethodDecl();
+            }
         }
         check(rbrace);
     }
