@@ -21,12 +21,13 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Token.Kind> firstMethodDecl;
 
     private final EnumSet<Token.Kind> followMethodDecl;
+
     private final EnumSet<Token.Kind> recoverMethodDeclSet;
-
     private final EnumSet<Token.Kind> recoverDeclSet;
+    private final EnumSet<Token.Kind> recoverStatementSet;
 
-    private static int errDist = 3;
-    public static int errors = 0;
+    private static int errDist;
+    private static final int ERR_DIST_THRESHOLD = 3;
 
     public ParserImpl(Scanner scanner) {
         super(scanner);
@@ -40,12 +41,13 @@ public final class ParserImpl extends Parser {
         this.firstStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, semicolon, lbrace);
         this.firstMethodDecl = EnumSet.of(ident, void_);
 
-        this.followMethodDecl = EnumSet.copyOf(firstMethodDecl);
-        this.followMethodDecl.add(rbrace);
+        this.followMethodDecl = EnumSet.of(ident, void_, rbrace);
 
         this.recoverDeclSet = EnumSet.of(final_, class_, eof, lbrace, ident);
         this.recoverMethodDeclSet = EnumSet.copyOf(followMethodDecl);
         this.recoverMethodDeclSet.add(eof);
+        this.recoverStatementSet = EnumSet.of(if_, while_, break_, return_, read, print, semicolon, rbrace, else_, eof);
+
     }
 
     /**
@@ -58,10 +60,10 @@ public final class ParserImpl extends Parser {
         check(eof);
     }
 
+    @Override
     public void error(Errors.Message msg, Object... msgParams) {
-        if (errDist >= 3) {
+        if (errDist >= ERR_DIST_THRESHOLD) {
             scanner.errors.error(la.line, la.col, msg, msgParams);
-            errors++;
         }
         errDist = 0;
     }
@@ -71,6 +73,7 @@ public final class ParserImpl extends Parser {
         while (!recoverDeclSet.contains(sym)) {
             scan();
         }
+        errDist = 0;
     }
 
     private void recoverMethodDecl() {
@@ -78,9 +81,19 @@ public final class ParserImpl extends Parser {
         while (!recoverMethodDeclSet.contains(sym)) {
             scan();
         }
+        errDist = 0;
+    }
+
+    private void recoverStatement() {
+        this.error(INVALID_STAT);
+        while (!recoverStatementSet.contains(sym)) {
+            scan();
+        }
+        errDist = 0;
     }
 
     private void program() {
+        errDist = ERR_DIST_THRESHOLD;
         check(program);
         check(ident);
 
@@ -125,7 +138,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 break;
             default:
-                super.error(CONST_DECL);
+                this.error(CONST_DECL);
         }
         check(semicolon);
     }
@@ -161,7 +174,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 break;
             default:
-                super.error(METH_DECL);
+                this.error(METH_DECL);
         }
         check(ident);
         check(lpar);
@@ -211,6 +224,9 @@ public final class ParserImpl extends Parser {
     }
 
     private void statement() {
+        if (!firstStatement.contains(sym)) {
+            recoverStatement();
+        }
         switch (sym) {
             case ident:
                 designator();
@@ -224,7 +240,7 @@ public final class ParserImpl extends Parser {
                 } else if (sym == mminus) {
                     scan();
                 } else {
-                    super.error(DESIGN_FOLLOW);
+                    this.error(DESIGN_FOLLOW);
                 }
                 check(semicolon);
                 break;
@@ -282,7 +298,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 break;
             default:
-                super.error(INVALID_STAT);
+                this.error(INVALID_STAT);
         }
     }
 
@@ -290,7 +306,7 @@ public final class ParserImpl extends Parser {
         if (firstAssignop.contains(sym)) {
             scan();
         } else {
-            super.error(ASSIGN_OP);
+            this.error(ASSIGN_OP);
         }
     }
 
@@ -352,7 +368,7 @@ public final class ParserImpl extends Parser {
         if (firstRelop.contains(sym)) {
             scan();
         } else {
-            super.error(REL_OP);
+            this.error(REL_OP);
         }
     }
 
@@ -407,7 +423,7 @@ public final class ParserImpl extends Parser {
                 check(rpar);
                 break;
             default:
-                super.error(INVALID_FACT);
+                this.error(INVALID_FACT);
         }
     }
 
@@ -430,7 +446,7 @@ public final class ParserImpl extends Parser {
         if (sym == plus || sym == minus) {
             scan();
         } else {
-            super.error(ADD_OP);
+            this.error(ADD_OP);
         }
     }
 
@@ -438,7 +454,7 @@ public final class ParserImpl extends Parser {
         if (sym == times || sym == slash || sym == rem) {
             scan();
         } else {
-            super.error(MUL_OP);
+            this.error(MUL_OP);
         }
     }
 
@@ -460,7 +476,7 @@ public final class ParserImpl extends Parser {
         if (sym == expected) {
             scan();
         } else {
-            super.error(TOKEN_EXPECTED, expected);
+            this.error(TOKEN_EXPECTED, expected);
         }
     }
 
