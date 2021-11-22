@@ -6,10 +6,7 @@ import ssw.mj.symtab.Scope;
 import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
-import java.util.Objects;
-
 import static ssw.mj.Errors.Message.*;
-import static ssw.mj.symtab.Struct.Kind.Int;
 
 public final class TabImpl extends Tab {
 

@@ -8,7 +8,6 @@ import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Struct;
 
 import java.util.EnumSet;
-import java.util.Objects;
 
 import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
