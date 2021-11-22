@@ -8,6 +8,7 @@ import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Struct;
 
 import java.util.EnumSet;
+import java.util.Objects;
 
 import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
@@ -49,7 +50,7 @@ public final class ParserImpl extends Parser {
         this.followStatement = EnumSet.of(else_, rbrace);
         this.followStatement.addAll(firstStatement);
 
-        this.recoverDeclSet = EnumSet.of(final_, class_, eof, lbrace, ident);
+        this.recoverDeclSet = EnumSet.of(final_, class_, eof, lbrace);
         this.recoverMethodDeclSet = EnumSet.copyOf(followMethodDecl);
         this.recoverMethodDeclSet.add(eof);
         this.recoverStatementSet = EnumSet.of(if_, while_, break_, return_, read, print, semicolon, rbrace, else_, eof);
@@ -75,7 +76,13 @@ public final class ParserImpl extends Parser {
 
     private void recoverDecl() {
         this.error(INVALID_DECL);
-        while (!recoverDeclSet.contains(sym)) {
+        for (;;) {
+            if(recoverDeclSet.contains(sym)) {
+                break;
+            } else if(sym == ident && tab.find(t.str).type != noType) {
+                break;
+            }
+
             scan();
         }
         errDist = 0;
@@ -179,9 +186,7 @@ public final class ParserImpl extends Parser {
         while (sym == comma) {
             scan();
             check(ident);
-            if(t.str != null) {
-                tab.insert(Obj.Kind.Var, t.str, type);
-            }
+            tab.insert(Obj.Kind.Var, t.str, type);
         }
         check(semicolon);
     }

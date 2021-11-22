@@ -63,6 +63,10 @@ public final class TabImpl extends Tab {
     }
 
     public Obj insert(Obj.Kind kind, String name, Struct type) {
+        if(name == null) {
+            return noObj;
+        }
+
         // report error if the found object is not null, which means that it is already declared
         if (curScope.findLocal(name) != null) {
             parser.error(DECL_NAME, name);
