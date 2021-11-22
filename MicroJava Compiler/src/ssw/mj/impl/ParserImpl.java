@@ -30,7 +30,7 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Token.Kind> recoverDeclSet;
     private final EnumSet<Token.Kind> recoverStatementSet;
 
-    private static int errDist;
+    private int errDist;
     private static final int ERR_DIST_THRESHOLD = 3;
 
     public ParserImpl(Scanner scanner) {
