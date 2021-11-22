@@ -4,11 +4,14 @@ import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token;
+import ssw.mj.symtab.Obj;
+import ssw.mj.symtab.Struct;
 
 import java.util.EnumSet;
 
 import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
+import static ssw.mj.symtab.Tab.noType;
 
 public final class ParserImpl extends Parser {
 
@@ -47,7 +50,6 @@ public final class ParserImpl extends Parser {
         this.recoverMethodDeclSet = EnumSet.copyOf(followMethodDecl);
         this.recoverMethodDeclSet.add(eof);
         this.recoverStatementSet = EnumSet.of(if_, while_, break_, return_, read, print, semicolon, rbrace, else_, eof);
-
     }
 
     /**
@@ -94,8 +96,12 @@ public final class ParserImpl extends Parser {
 
     private void program() {
         errDist = ERR_DIST_THRESHOLD;
+
         check(program);
         check(ident);
+        Obj prog = tab.insert(Obj.Kind.Prog, t.str, noType);
+
+        tab.openScope();
 
         for (; ; ) {
             if (sym == final_) {
@@ -114,7 +120,7 @@ public final class ParserImpl extends Parser {
 
         for (; ; ) {
             if (firstMethodDecl.contains(sym)) {
-                methodDecl();
+                        methodDecl();
             } else if (sym == rbrace || sym == eof) {
                 break;
             } else {
@@ -122,13 +128,22 @@ public final class ParserImpl extends Parser {
             }
         }
         check(rbrace);
+
+        if(tab.curScope.locals().size() > MAX_GLOBALS) {
+            error(TOO_MANY_GLOBALS);
+        }
+
+        prog.locals = tab.curScope.locals();
+        tab.closeScope();
     }
 
     private void constDecl() {
         check(final_);
-        type();
+        Struct type = type();
         check(ident);
         check(assign);
+
+        tab.insert(Obj.Kind.Con, t.str, type);
 
         switch (sym) {
             case number:
@@ -144,12 +159,14 @@ public final class ParserImpl extends Parser {
     }
 
     private void varDecl() {
-        type();
+        Struct type = type();
         check(ident);
+        tab.insert(Obj.Kind.Var, t.str, type);
 
         while (sym == comma) {
             scan();
             check(ident);
+            tab.insert(Obj.Kind.Var, t.str, type);
         }
         check(semicolon);
     }
@@ -166,9 +183,10 @@ public final class ParserImpl extends Parser {
     }
 
     private void methodDecl() {
+        Struct type = noType;
         switch (sym) {
             case ident:
-                type();
+                type = type();
                 break;
             case void_:
                 scan();
@@ -177,10 +195,15 @@ public final class ParserImpl extends Parser {
                 this.error(METH_DECL);
         }
         check(ident);
+        String methodName = t.str;
+        Obj meth = tab.insert(Obj.Kind.Meth, methodName, type);
         check(lpar);
 
+        tab.openScope();
         if (sym == ident) {
             formPars();
+            // increase number of parameters
+            meth.nPars++;
         }
         check(rpar);
 
@@ -188,6 +211,13 @@ public final class ParserImpl extends Parser {
             varDecl();
         }
         block();
+
+        // set local variables and parameters
+        meth.locals = tab.curScope.locals();
+        if(meth.locals.size() > MAX_LOCALS) {
+            error(TOO_MANY_LOCALS);
+        }
+        tab.closeScope();
     }
 
     private void formPars() {
@@ -205,13 +235,22 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    private void type() {
+    private Struct type() {
         check(ident);
+        Obj o = tab.find(t.str);
+        if (o.kind != Obj.Kind.Type) {
+            error(NO_TYPE);
+
+        }
+        StructImpl type = o.type;
 
         if (sym == lbrack) {
             scan();
             check(rbrack);
+            type = new StructImpl(type);
         }
+
+        return type;
     }
 
     private void block() {
