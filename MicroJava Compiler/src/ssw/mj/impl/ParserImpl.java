@@ -89,7 +89,13 @@ public final class ParserImpl extends Parser {
 
     private void recoverMethodDecl() {
         this.error(METH_DECL);
-        while (!recoverMethodDeclSet.contains(sym)) {
+        for (;;) {
+            if(recoverMethodDeclSet.contains(sym)) {
+                break;
+            } else if(sym == ident && tab.find(t.str).type != noType) {
+                break;
+            }
+
             scan();
         }
         errDist = 0;
