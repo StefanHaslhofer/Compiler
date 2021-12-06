@@ -22,7 +22,8 @@ public class Configuration {
 	 * Prints the decoded byte code before it executes the test case. Outside
 	 * the test cases this can be done with {@link Decoder}.
 	 */
-	public static final boolean PRINT_DECODED_BYTE_CODE = Boolean.getBoolean("microjava.decodeBytecode");
+	//public static final boolean PRINT_DECODED_BYTE_CODE = Boolean.getBoolean("microjava.decodeBytecode");
+	public static final boolean PRINT_DECODED_BYTE_CODE = true;
 
 	/**
 	 * Determines the timeout after which a test case should fail automatically.

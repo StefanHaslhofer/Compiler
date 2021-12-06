@@ -4,6 +4,7 @@ import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token;
+import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Struct;
 
@@ -470,7 +471,7 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    private void expr() {
+    private Operand expr() {
         if (sym == minus) {
             scan();
         }
@@ -525,19 +526,32 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    private void designator() {
+    private Operand designator() {
         check(ident);
-
+        Operand x = new Operand(tab.find(t.str), this);
         while (sym == period || sym == lbrack) {
             if (sym == period) {
                 scan();
+                code.load(x);
                 check(ident);
+
+                Obj obj = tab.findField(t.str, x.type);
+                x.kind = Operand.Kind.Fld;
+                x.type = obj.type;
+                x.adr = obj.adr;
             } else {
                 scan();
-                expr();
+                code.load(x);
+                Operand y = expr();
+                code.load(y);
                 check(rbrack);
+
+                x.kind = Operand.Kind.Elem;
+                x.type = x.type.elemType;
             }
         }
+
+        return x;
     }
 
     private void addop() {
