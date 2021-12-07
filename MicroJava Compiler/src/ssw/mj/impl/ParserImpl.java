@@ -4,9 +4,11 @@ import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token;
+import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Struct;
+import ssw.mj.symtab.Tab;
 
 import java.util.EnumSet;
 
@@ -476,21 +478,34 @@ public final class ParserImpl extends Parser {
             scan();
         }
 
-        term();
+        Operand x = term();
 
         while (sym == plus || sym == minus) {
-            addop();
-            term();
+            Code.OpCode c = addop();
+            code.load(x);
+            Operand y = term();
+            code.load(y);
+
+            if(x.type != intType || y.type != intType) {
+                this.error(NO_INT_OP);
+            }
+
+            code.put(c);
+
         }
+
+        return x;
     }
 
-    private void term() {
-        factor();
+    private Operand term() {
+        Operand x = factor();
 
         while (firstMulop.contains(sym)) {
             mulop();
             factor();
         }
+
+        return x;
     }
 
     private void factor() {
@@ -554,11 +569,15 @@ public final class ParserImpl extends Parser {
         return x;
     }
 
-    private void addop() {
-        if (sym == plus || sym == minus) {
+    private Code.OpCode addop() {
+        if (sym == plus) {
             scan();
+            return Code.OpCode.add;
+        } else if (sym == minus) {
+            return Code.OpCode.sub;
         } else {
             this.error(ADD_OP);
+            return Code.OpCode.nop;
         }
     }
 

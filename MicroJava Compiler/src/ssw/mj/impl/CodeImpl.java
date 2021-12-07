@@ -24,7 +24,7 @@ public final class CodeImpl extends Code {
                     case 1: put(OpCode.load_1); break;
                     case 2: put(OpCode.load_2); break;
                     case 3: put(OpCode.load_3); break;
-                    default: put(OpCode.load); put(x.adr); break;
+                    default: put(OpCode.load); put4(x.adr); break;
                 }
                 break;
             case Static: put(OpCode.getstatic); put2(x.adr); break;
@@ -62,6 +62,15 @@ public final class CodeImpl extends Code {
     }
 
     void loadConst(int x) {
-
+        switch (x) {
+            case -1: put(OpCode.const_m1); break;
+            case 0: put(OpCode.const_0); break;
+            case 1: put(OpCode.const_1); break;
+            case 2: put(OpCode.const_2); break;
+            case 3: put(OpCode.const_3); break;
+            case 4: put(OpCode.const_4); break;
+            case 5: put(OpCode.const_5); break;
+            default: put(OpCode.const_); put(x); break;
+        }
     }
 }
