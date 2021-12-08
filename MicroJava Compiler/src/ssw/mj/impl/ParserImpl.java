@@ -78,10 +78,10 @@ public final class ParserImpl extends Parser {
 
     private void recoverDecl() {
         this.error(INVALID_DECL);
-        for (;;) {
-            if(recoverDeclSet.contains(sym)) {
+        for (; ; ) {
+            if (recoverDeclSet.contains(sym)) {
                 break;
-            } else if(sym == ident && tab.find(t.str).type != noType) {
+            } else if (sym == ident && tab.find(t.str).type != noType) {
                 break;
             }
 
@@ -92,10 +92,10 @@ public final class ParserImpl extends Parser {
 
     private void recoverMethodDecl() {
         this.error(METH_DECL);
-        for (;;) {
-            if(recoverMethodDeclSet.contains(sym)) {
+        for (; ; ) {
+            if (recoverMethodDeclSet.contains(sym)) {
                 break;
-            } else if(sym == ident && tab.find(t.str).type != noType) {
+            } else if (sym == ident && tab.find(t.str).type != noType) {
                 break;
             }
 
@@ -165,7 +165,7 @@ public final class ParserImpl extends Parser {
 
         switch (sym) {
             case number:
-                if(constant.type == intType) {
+                if (constant.type == intType) {
                     scan();
                     constant.val = t.val;
                 } else {
@@ -173,7 +173,7 @@ public final class ParserImpl extends Parser {
                 }
                 break;
             case charConst:
-                if(constant.type == charType) {
+                if (constant.type == charType) {
                     scan();
                     constant.val = t.val;
                 } else {
@@ -245,11 +245,11 @@ public final class ParserImpl extends Parser {
         }
         check(rpar);
 
-        if (methodName.equals("main") ) {
-            if(meth.nPars > 0) {
+        if (methodName.equals("main")) {
+            if (meth.nPars > 0) {
                 error(MAIN_WITH_PARAMS);
             }
-            if(!meth.type.equals(noType)) {
+            if (!meth.type.equals(noType)) {
                 error(MAIN_NOT_VOID);
             }
         }
@@ -312,10 +312,10 @@ public final class ParserImpl extends Parser {
     private void block() {
         check(lbrace);
 
-        for (;;) {
-            if(firstStatement.contains(sym)) {
+        for (; ; ) {
+            if (firstStatement.contains(sym)) {
                 statement();
-            } else if(sym == rbrace || sym == eof) {
+            } else if (sym == rbrace || sym == eof) {
                 break;
             } else {
                 recoverStatement();
@@ -486,12 +486,11 @@ public final class ParserImpl extends Parser {
             Operand y = term();
             code.load(y);
 
-            if(x.type != intType || y.type != intType) {
+            if (x.type != intType || y.type != intType) {
                 this.error(NO_INT_OP);
             }
 
             code.put(c);
-
         }
 
         return x;
@@ -501,44 +500,82 @@ public final class ParserImpl extends Parser {
         Operand x = factor();
 
         while (firstMulop.contains(sym)) {
-            mulop();
-            factor();
+            Code.OpCode c = mulop();
+            code.load(x);
+            Operand y = factor();
+            code.load(y);
+
+            if (x.type != intType || y.type != intType) {
+                this.error(NO_INT_OP);
+            }
+
+            code.put(c);
         }
 
         return x;
     }
 
-    private void factor() {
+    private Operand factor() {
+        Operand x = null;
         switch (sym) {
             case ident:
-                designator();
+                x = designator();
                 if (sym == lpar) {
                     actpars();
                 }
                 break;
             case number:
+                x = new Operand(t.val);
                 scan();
                 break;
             case charConst:
+                x = new Operand(t.val);
+                x.type = charType;
                 scan();
                 break;
             case new_:
                 scan();
                 check(ident);
+                Obj obj = tab.find(t.str);
+                StructImpl type = obj.type;
+
                 if (sym == lbrack) {
                     scan();
-                    expr();
+                    Operand y = expr();
+                    if (y.type != intType) {
+                        this.error(ARRAY_SIZE);
+                    }
+                    code.load(y);
+                    code.put(Code.OpCode.newarray);
+                    // if char array allocate bytes otherwise words
+                    if (type == Tab.charType) {
+                        code.put(0);
+                    } else {
+                        code.put(1);
+                    }
+                    type = new StructImpl(type);
                     check(rbrack);
+                } else {
+                    if (obj.kind != Obj.Kind.Type || obj.type.kind != Struct.Kind.Class) {
+                        this.error(NO_CLASS_TYPE);
+                    }
+                    code.put(Code.OpCode.new_);
+                    code.put2(obj.type.nrFields());
                 }
+
+                x = new Operand(type);
                 break;
             case lpar:
                 scan();
-                expr();
+                x = expr();
                 check(rpar);
                 break;
             default:
+                x = new Operand(noType);
                 this.error(INVALID_FACT);
         }
+
+        return x;
     }
 
     private Operand designator() {
@@ -581,11 +618,20 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    private void mulop() {
-        if (sym == times || sym == slash || sym == rem) {
-            scan();
-        } else {
-            this.error(MUL_OP);
+    private Code.OpCode mulop() {
+        switch (sym) {
+            case times:
+                scan();
+                return Code.OpCode.mul;
+            case slash:
+                scan();
+                return Code.OpCode.div;
+            case rem:
+                scan();
+                return Code.OpCode.rem;
+            default:
+                this.error(MUL_OP);
+                return Code.OpCode.nop;
         }
     }
 
