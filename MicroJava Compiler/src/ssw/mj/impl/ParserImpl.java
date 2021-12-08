@@ -246,6 +246,7 @@ public final class ParserImpl extends Parser {
         check(rpar);
 
         if (methodName.equals("main")) {
+            code.mainpc = code.pc;
             if (meth.nPars > 0) {
                 error(MAIN_WITH_PARAMS);
             }
@@ -263,10 +264,22 @@ public final class ParserImpl extends Parser {
         } else {
             // set local variables and parameters
             meth.locals = tab.curScope.locals();
+            meth.adr = code.pc;
+            code.put(Code.OpCode.enter);
+            code.put(meth.nPars);
+            code.put(tab.curScope.nVars());
         }
 
         block();
         tab.closeScope();
+
+        if (meth.type == Tab.noType) {
+            code.put(Code.OpCode.exit);
+            code.put(Code.OpCode.return_);
+        } else { // end of function reached without a return statement
+            code.put(Code.OpCode.trap);
+            code.put(1);
+        }
     }
 
     private void formPars(Obj meth) {
@@ -325,21 +338,39 @@ public final class ParserImpl extends Parser {
     }
 
     private void statement() {
+        Operand x = null;
         if (!firstStatement.contains(sym)) {
             recoverStatement();
         }
         switch (sym) {
             case ident:
-                designator();
+                x = designator();
                 if (firstAssignop.contains(sym)) {
                     assignop();
-                    expr();
+                    Operand y = expr();
+                    if (y.type.assignableTo(x.type)) {
+                        code.assign(x, y);
+                    } else {
+                        this.error(INCOMP_TYPES);
+                    }
                 } else if (sym == lpar) {
                     actpars();
                 } else if (sym == pplus) {
                     scan();
+                    // distinguish between local and global variables
+                    if (x.kind != Operand.Kind.Local) {
+                        code.addToNonLocal(x, 1);
+                    } else {
+                        code.addToLocal(x, 1);
+                    }
                 } else if (sym == mminus) {
                     scan();
+                    // distinguish between local and global variables
+                    if (x.kind != Operand.Kind.Local) {
+                        code.addToNonLocal(x, -1);
+                    } else {
+                        code.addToLocal(x, -1);
+                    }
                 } else {
                     this.error(DESIGN_FOLLOW);
                 }
@@ -384,13 +415,16 @@ public final class ParserImpl extends Parser {
             case print:
                 scan();
                 check(lpar);
-                expr();
+                x = expr();
+                code.load(x);
+                code.loadConst(String.valueOf(t.val).length());
                 if (sym == comma) {
                     scan();
                     check(number);
                 }
                 check(rpar);
                 check(semicolon);
+                code.put(Code.OpCode.print);
                 break;
             case lbrace:
                 block();
@@ -525,13 +559,13 @@ public final class ParserImpl extends Parser {
                 }
                 break;
             case number:
-                x = new Operand(t.val);
                 scan();
+                x = new Operand(t.val);
                 break;
             case charConst:
+                scan();
                 x = new Operand(t.val);
                 x.type = charType;
-                scan();
                 break;
             case new_:
                 scan();
