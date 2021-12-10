@@ -193,11 +193,13 @@ public final class ParserImpl extends Parser {
         Struct type = type();
         check(ident);
         tab.insert(Obj.Kind.Var, t.str, type);
+        code.dataSize++;
 
         while (sym == comma) {
             scan();
             check(ident);
             tab.insert(Obj.Kind.Var, t.str, type);
+            code.dataSize++;
         }
         check(semicolon);
     }
@@ -353,13 +355,13 @@ public final class ParserImpl extends Parser {
 
                     // check if it is possible to perform an arithmetic operation with the designator
                     if (c != Code.OpCode.nop) {
-                        if(x.kind != Operand.Kind.Local && x.kind != Operand.Kind.Elem &&
-                                x.kind != Operand.Kind.Static && x.kind != Operand.Kind.Fld) {
+                        if (!code.isAssignable(x)) {
                             this.error(NO_VAR);
                         }
-                        // duplicate variable on stack
+                        // duplicate variable on stack if we want to perform an arithmetic operation on stack
                         if (x.kind == Operand.Kind.Elem) {
                             code.put(Code.OpCode.dup2);
+                            code.put(Code.OpCode.aload);
                         } else {
                             code.put(Code.OpCode.dup);
                         }
@@ -367,43 +369,52 @@ public final class ParserImpl extends Parser {
 
                     Operand y = expr();
 
+                    // both operands have to be of type int if the opCode != "="
+                    if (c != Code.OpCode.nop && (x.type != intType || y.type != intType)) {
+                        this.error(NO_INT_OP);
+                    }
+
                     if (y.type.assignableTo(x.type)) {
-                        // both operands have to be of type int if the opCode != "="
-                        if (c != Code.OpCode.nop ) {
-                            if (x.type != intType || y.type != intType) {
-                                this.error(NO_INT_OP);
-                            }
-                        }
                         code.assign(x, y, c);
                     } else {
                         this.error(INCOMP_TYPES);
                     }
                 } else if (sym == lpar) {
+                    if (x.kind != Operand.Kind.Meth) {
+                        this.error(NO_METH);
+                    }
                     actpars();
                 } else if (sym == pplus) {
-                    if (x.type == intType) {
-                        scan();
-                        // distinguish between local and global variables
-                        if (x.kind != Operand.Kind.Local) {
-                            code.arithmethicOpNonLocal(x, 1, Code.OpCode.add);
-                        } else {
-                            code.addToLocal(x, 1);
-                        }
-                    } else {
+                    if (x.type != intType) {
                         this.error(NO_INT);
                     }
+
+                    if (!code.isAssignable(x)) {
+                        this.error(NO_VAR);
+                    }
+                    // distinguish between local and global variables
+                    if (x.kind != Operand.Kind.Local) {
+                        code.arithmethicOpNonLocal(x, 1, Code.OpCode.add);
+                    } else {
+                        code.addToLocal(x, 1);
+                    }
+                    scan();
                 } else if (sym == mminus) {
-                    if (x.type == intType) {
-                        scan();
-                        // distinguish between local and global variables
-                        if (x.kind != Operand.Kind.Local) {
-                            code.arithmethicOpNonLocal(x, -1, Code.OpCode.add);
-                        } else {
-                            code.addToLocal(x, -1);
-                        }
-                    } else {
+                    if (x.type != intType) {
                         this.error(NO_INT);
                     }
+                    if (!code.isAssignable(x)) {
+                        this.error(NO_VAR);
+                    }
+                    // distinguish between local and global variables
+                    if (x.kind != Operand.Kind.Local) {
+                        code.arithmethicOpNonLocal(x, -1, Code.OpCode.add);
+                    } else {
+                        code.addToLocal(x, -1);
+                    }
+
+
+                    scan();
                 } else {
                     this.error(DESIGN_FOLLOW);
                 }
@@ -434,7 +445,12 @@ public final class ParserImpl extends Parser {
             case return_:
                 scan();
                 if (firstExpr.contains(sym)) {
-                    expr();
+                    x = expr();
+                    if (true) {
+                        //this.error(RETURN_TYPE);
+                    }
+                } else if (true) {
+                    //this.error(RETURN_VOID);
                 }
                 check(semicolon);
                 break;
@@ -442,6 +458,12 @@ public final class ParserImpl extends Parser {
                 scan();
                 check(lpar);
                 x = designator();
+                if (!code.isAssignable(x)) {
+                    this.error(NO_VAR);
+                }
+                if(!code.isReadable(x)) {
+                    this.error(READ_VALUE);
+                }
                 check(rpar);
                 check(semicolon);
                 code.load(x);
@@ -449,8 +471,6 @@ public final class ParserImpl extends Parser {
                     code.put(Code.OpCode.read);
                 } else if (x.type.kind == Struct.Kind.Char) {
                     code.put(Code.OpCode.bread);
-                } else {
-                    this.error(READ_VALUE);
                 }
                 code.storeConst(x.adr);
                 break;
@@ -583,6 +603,7 @@ public final class ParserImpl extends Parser {
         }
 
         Operand x = term();
+
         if (isNeg) {
             if (x.type != intType) {
                 this.error(NO_INT_OP);
@@ -638,6 +659,12 @@ public final class ParserImpl extends Parser {
             case ident:
                 x = designator();
                 if (sym == lpar) {
+                    if (x.kind != Operand.Kind.Meth) {
+                        this.error(NO_METH);
+                    }
+                    if (x.type == noType) {
+                        this.error(INVALID_CALL);
+                    }
                     actpars();
                 }
                 break;
@@ -673,7 +700,10 @@ public final class ParserImpl extends Parser {
                     type = new StructImpl(type);
                     check(rbrack);
                 } else {
-                    if (obj.kind != Obj.Kind.Type || obj.type.kind != Struct.Kind.Class) {
+                    if (obj.kind != Obj.Kind.Type) {
+                        this.error(NO_TYPE);
+                    }
+                    if( obj.type.kind != Struct.Kind.Class) {
                         this.error(NO_CLASS_TYPE);
                     }
                     code.put(Code.OpCode.new_);
@@ -712,13 +742,17 @@ public final class ParserImpl extends Parser {
                 x.type = obj.type;
                 x.adr = obj.adr;
             } else {
-                scan();
                 code.load(x);
+                scan();
                 Operand y = expr();
 
                 if (x.type.kind != Struct.Kind.Arr) {
                     this.error(NO_ARRAY);
                 }
+                if (y.type != intType) {
+                    this.error(ARRAY_INDEX);
+                }
+
                 code.load(y);
                 check(rbrack);
 

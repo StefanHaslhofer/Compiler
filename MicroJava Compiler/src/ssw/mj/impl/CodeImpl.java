@@ -15,7 +15,6 @@ public final class CodeImpl extends Code {
         super(p);
     }
 
-    // TODO Exercise 5 - 6: implementation of code generation
     void load(Operand x) {
         switch (x.kind) {
             case Con:
@@ -173,7 +172,7 @@ public final class CodeImpl extends Code {
         Operand.Kind k = x.kind;
         if (k == Operand.Kind.Elem) {
             put(Code.OpCode.dup2);
-        } else {
+        } else if (k != Operand.Kind.Static){
             put(Code.OpCode.dup);
         }
         load(x);
@@ -182,27 +181,36 @@ public final class CodeImpl extends Code {
 
         if (k == Operand.Kind.Elem) {
             put(Code.OpCode.astore);
-        } else {
+        } else if (k == Operand.Kind.Con || k == Operand.Kind.Local || k == Operand.Kind.Fld){
             put(OpCode.putfield);
+            put2(x.adr);
+        } else{
+            put(OpCode.putstatic);
             put2(x.adr);
         }
     }
 
     /*
-     * arithmetic operations for non local fields by value
+     * return true if a given operand is a variable, arrayelement or field
      */
-    void arithmethicOpNonLocal(Operand x, Operand y, Code.OpCode c) {
-        load(x);
-        load(y);
-        put(c);
+    boolean isAssignable(Operand x) {
+        return x.kind == Operand.Kind.Local || x.kind == Operand.Kind.Elem ||
+                x.kind == Operand.Kind.Static || x.kind == Operand.Kind.Fld;
+    }
+
+    /*
+     * return true if a given can be read
+     */
+    boolean isReadable(Operand x) {
+        return x.type.kind == Struct.Kind.Int || x.type.kind == Struct.Kind.Char;
     }
 
     /*
      * increment or decrement non local field by value
      */
     void addToLocal(Operand x, int val) {
-        load(x);
         put(Code.OpCode.inc);
-        loadConst(val);
+        put(x.adr);
+        put(val);
     }
 }
