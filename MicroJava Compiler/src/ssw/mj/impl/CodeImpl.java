@@ -68,7 +68,8 @@ public final class CodeImpl extends Code {
         // combine two operands via arithmetic operation if a opCode is given
         // otherwise simply load the second operand normal
         if(c != OpCode.nop) {
-            arithmethicOpNonLocal(x, y, c);
+            load(y);
+            put(c);
         } else {
             load(y);
         }
@@ -191,15 +192,7 @@ public final class CodeImpl extends Code {
      * arithmetic operations for non local fields by value
      */
     void arithmethicOpNonLocal(Operand x, Operand y, Code.OpCode c) {
-        // save for kind for later as it will be changed by load(x)
-        Operand.Kind k = x.kind;
-        if (k == Operand.Kind.Elem) {
-            put(Code.OpCode.dup2);
-        } else {
-            put(Code.OpCode.dup);
-        }
         load(x);
-        x.kind = k;
         load(y);
         put(c);
     }

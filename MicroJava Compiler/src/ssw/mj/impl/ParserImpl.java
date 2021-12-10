@@ -352,18 +352,28 @@ public final class ParserImpl extends Parser {
                     Code.OpCode c = assignop();
 
                     // check if it is possible to perform an arithmetic operation with the designator
-                    if (c != Code.OpCode.nop && x.kind != Operand.Kind.Local && x.kind != Operand.Kind.Elem &&
-                            x.kind != Operand.Kind.Static && x.kind != Operand.Kind.Fld) {
-                        this.error(NO_VAR);
+                    if (c != Code.OpCode.nop) {
+                        if(x.kind != Operand.Kind.Local && x.kind != Operand.Kind.Elem &&
+                                x.kind != Operand.Kind.Static && x.kind != Operand.Kind.Fld) {
+                            this.error(NO_VAR);
+                        }
+                        // duplicate variable on stack
+                        if (x.kind == Operand.Kind.Elem) {
+                            code.put(Code.OpCode.dup2);
+                        } else {
+                            code.put(Code.OpCode.dup);
+                        }
                     }
 
                     Operand y = expr();
 
                     if (y.type.assignableTo(x.type)) {
-                        if (c != Code.OpCode.nop && (x.type != intType || y.type != intType)) {
-                            this.error(NO_INT_OP);
+                        // both operands have to be of type int if the opCode != "="
+                        if (c != Code.OpCode.nop ) {
+                            if (x.type != intType || y.type != intType) {
+                                this.error(NO_INT_OP);
+                            }
                         }
-
                         code.assign(x, y, c);
                     } else {
                         this.error(INCOMP_TYPES);
@@ -481,7 +491,7 @@ public final class ParserImpl extends Parser {
     }
 
     /*
-     * return nop if assign and error case
+     * return nop if assign and error case otherwise return the matching opCode
      */
     private Code.OpCode assignop() {
         switch (sym) {
