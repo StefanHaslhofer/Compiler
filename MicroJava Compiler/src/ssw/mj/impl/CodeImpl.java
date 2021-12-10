@@ -64,8 +64,14 @@ public final class CodeImpl extends Code {
         x.kind = Operand.Kind.Stack; // remember that value is now loaded
     }
 
-    void assign(Operand x, Operand y) {
-        load(y);
+    void assign(Operand x, Operand y, OpCode c) {
+        // combine two operands via arithmetic operation if a opCode is given
+        // otherwise simply load the second operand normal
+        if(c != OpCode.nop) {
+            arithmethicOpNonLocal(x, y, c);
+        } else {
+            load(y);
+        }
         switch (x.kind) {
             case Local:
                 switch (x.adr) {
@@ -132,30 +138,70 @@ public final class CodeImpl extends Code {
                 break;
             default:
                 put(OpCode.const_);
+                put4(x);
+                break;
+        }
+    }
+
+    void storeConst(int x) {
+        switch (x) {
+            case 0:
+                put(OpCode.store_0);
+                break;
+            case 1:
+                put(OpCode.store_1);
+                break;
+            case 2:
+                put(OpCode.store_2);
+                break;
+            case 3:
+                put(OpCode.store_3);
+                break;
+            default:
+                put(OpCode.store);
                 put(x);
                 break;
         }
     }
 
     /*
-     * increment or decrement non local field by value
+     * arithmetic operations for non local fields by value
      */
-    void addToNonLocal(Operand x, int val) {
-        if (x.type.kind == Struct.Kind.Arr) {
+    void arithmethicOpNonLocal(Operand x, int val, Code.OpCode c) {
+        // save for kind for later as it will be changed by load(x)
+        Operand.Kind k = x.kind;
+        if (k == Operand.Kind.Elem) {
             put(Code.OpCode.dup2);
         } else {
             put(Code.OpCode.dup);
         }
         load(x);
         loadConst(val);
-        put(Code.OpCode.add);
+        put(c);
 
-        if (x.type.kind == Struct.Kind.Arr) {
+        if (k == Operand.Kind.Elem) {
             put(Code.OpCode.astore);
         } else {
             put(OpCode.putfield);
             put2(x.adr);
         }
+    }
+
+    /*
+     * arithmetic operations for non local fields by value
+     */
+    void arithmethicOpNonLocal(Operand x, Operand y, Code.OpCode c) {
+        // save for kind for later as it will be changed by load(x)
+        Operand.Kind k = x.kind;
+        if (k == Operand.Kind.Elem) {
+            put(Code.OpCode.dup2);
+        } else {
+            put(Code.OpCode.dup);
+        }
+        load(x);
+        x.kind = k;
+        load(y);
+        put(c);
     }
 
     /*

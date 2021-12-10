@@ -105,7 +105,6 @@ public final class ScannerImpl extends Scanner {
                 } else {
                     t.kind = times;
                 }
-                nextCh();
                 break;
             case '%':
                 nextCh();

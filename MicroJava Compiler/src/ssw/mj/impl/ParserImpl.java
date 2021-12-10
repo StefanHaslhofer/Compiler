@@ -152,6 +152,9 @@ public final class ParserImpl extends Parser {
         check(rbrace);
 
         prog.locals = tab.curScope.locals();
+        if (code.mainpc == -1) {
+            this.error(METH_NOT_FOUND, "main");
+        }
         tab.closeScope();
     }
 
@@ -346,30 +349,50 @@ public final class ParserImpl extends Parser {
             case ident:
                 x = designator();
                 if (firstAssignop.contains(sym)) {
-                    assignop();
+                    Code.OpCode c = assignop();
+
+                    // check if it is possible to perform an arithmetic operation with the designator
+                    if (c != Code.OpCode.nop && x.kind != Operand.Kind.Local && x.kind != Operand.Kind.Elem &&
+                            x.kind != Operand.Kind.Static && x.kind != Operand.Kind.Fld) {
+                        this.error(NO_VAR);
+                    }
+
                     Operand y = expr();
+
                     if (y.type.assignableTo(x.type)) {
-                        code.assign(x, y);
+                        if (c != Code.OpCode.nop && (x.type != intType || y.type != intType)) {
+                            this.error(NO_INT_OP);
+                        }
+
+                        code.assign(x, y, c);
                     } else {
                         this.error(INCOMP_TYPES);
                     }
                 } else if (sym == lpar) {
                     actpars();
                 } else if (sym == pplus) {
-                    scan();
-                    // distinguish between local and global variables
-                    if (x.kind != Operand.Kind.Local) {
-                        code.addToNonLocal(x, 1);
+                    if (x.type == intType) {
+                        scan();
+                        // distinguish between local and global variables
+                        if (x.kind != Operand.Kind.Local) {
+                            code.arithmethicOpNonLocal(x, 1, Code.OpCode.add);
+                        } else {
+                            code.addToLocal(x, 1);
+                        }
                     } else {
-                        code.addToLocal(x, 1);
+                        this.error(NO_INT);
                     }
                 } else if (sym == mminus) {
-                    scan();
-                    // distinguish between local and global variables
-                    if (x.kind != Operand.Kind.Local) {
-                        code.addToNonLocal(x, -1);
+                    if (x.type == intType) {
+                        scan();
+                        // distinguish between local and global variables
+                        if (x.kind != Operand.Kind.Local) {
+                            code.arithmethicOpNonLocal(x, -1, Code.OpCode.add);
+                        } else {
+                            code.addToLocal(x, -1);
+                        }
                     } else {
-                        code.addToLocal(x, -1);
+                        this.error(NO_INT);
                     }
                 } else {
                     this.error(DESIGN_FOLLOW);
@@ -408,23 +431,43 @@ public final class ParserImpl extends Parser {
             case read:
                 scan();
                 check(lpar);
-                designator();
+                x = designator();
                 check(rpar);
                 check(semicolon);
+                code.load(x);
+                if (x.type.kind == Struct.Kind.Int) {
+                    code.put(Code.OpCode.read);
+                } else if (x.type.kind == Struct.Kind.Char) {
+                    code.put(Code.OpCode.bread);
+                } else {
+                    this.error(READ_VALUE);
+                }
+                code.storeConst(x.adr);
                 break;
             case print:
                 scan();
                 check(lpar);
                 x = expr();
                 code.load(x);
-                code.loadConst(String.valueOf(t.val).length());
+
                 if (sym == comma) {
                     scan();
                     check(number);
+                    code.loadConst(t.val);
+                } else {
+                    code.loadConst(1);
                 }
+
+                if (x.type == intType) {
+                    code.put(Code.OpCode.print);
+                } else if (x.type == charType) {
+                    code.put(Code.OpCode.bprint);
+                } else {
+                    this.error(PRINT_VALUE);
+                }
+
                 check(rpar);
                 check(semicolon);
-                code.put(Code.OpCode.print);
                 break;
             case lbrace:
                 block();
@@ -437,11 +480,25 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    private void assignop() {
-        if (firstAssignop.contains(sym)) {
-            scan();
-        } else {
-            this.error(ASSIGN_OP);
+    /*
+     * return nop if assign and error case
+     */
+    private Code.OpCode assignop() {
+        switch (sym) {
+            case assign: scan();
+                return Code.OpCode.nop;
+            case plusas: scan();
+                return Code.OpCode.add;
+            case minusas: scan();
+                return Code.OpCode.sub;
+            case timesas: scan();
+                return Code.OpCode.mul;
+            case slashas: scan();
+                return Code.OpCode.div;
+            case remas: scan();
+                return Code.OpCode.rem;
+            default: this.error(ASSIGN_OP);
+                return Code.OpCode.nop;
         }
     }
 
@@ -508,11 +565,27 @@ public final class ParserImpl extends Parser {
     }
 
     private Operand expr() {
+        // multiply term value with neg in order to negate it if there is "-" in front
+        boolean isNeg = false;
         if (sym == minus) {
             scan();
+            isNeg = true;
         }
 
         Operand x = term();
+        if (isNeg) {
+            if (x.type != intType) {
+                this.error(NO_INT_OP);
+            }
+
+            // we can use val only for con otherwise we have to manually call neg
+            if (x.kind == Operand.Kind.Con) {
+                x.val = -x.val;
+            } else {
+                code.load(x);
+                code.put(Code.OpCode.neg);
+            }
+        }
 
         while (sym == plus || sym == minus) {
             Code.OpCode c = addop();
@@ -617,6 +690,9 @@ public final class ParserImpl extends Parser {
         Operand x = new Operand(tab.find(t.str), this);
         while (sym == period || sym == lbrack) {
             if (sym == period) {
+                if (x.type.kind != Struct.Kind.Class) {
+                    this.error(NO_CLASS);
+                }
                 scan();
                 code.load(x);
                 check(ident);
@@ -629,6 +705,10 @@ public final class ParserImpl extends Parser {
                 scan();
                 code.load(x);
                 Operand y = expr();
+
+                if (x.type.kind != Struct.Kind.Arr) {
+                    this.error(NO_ARRAY);
+                }
                 code.load(y);
                 check(rbrack);
 
@@ -645,6 +725,7 @@ public final class ParserImpl extends Parser {
             scan();
             return Code.OpCode.add;
         } else if (sym == minus) {
+            scan();
             return Code.OpCode.sub;
         } else {
             this.error(ADD_OP);
