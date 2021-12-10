@@ -29,6 +29,21 @@ public class SimpleCodeGenerationTest extends CompilerTestCaseSupport {
         expectSymTab("    Local Variable 2: int n");
     }
 
+
+    //@Test
+    public void returnMethod() {
+        init("program Test {" + LF + //
+                "  int method() { return 2; }" + LF + //
+                "  int method2() { return 4; }" + LF + //
+                "  void main() int i; {" + LF + //
+                "    i = method();" + LF + //
+                "    print(i);" + LF + //
+                "  }" + LF + //
+                "}");
+        addExpectedRun("1");
+        parseAndVerify();
+    }
+
     @Test
     public void undefNameMeth() {
         init("program Test {" + LF + //
