@@ -383,7 +383,7 @@ public final class ParserImpl extends Parser {
                     if (x.kind != Operand.Kind.Meth) {
                         this.error(NO_METH);
                     }
-                    actpars();
+                    actpars(x);
                 } else if (sym == pplus) {
                     if (x.type != intType) {
                         this.error(NO_INT);
@@ -532,8 +532,16 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    private void actpars() {
+    private void actpars(Operand x) {
         check(lpar);
+
+        if (x.obj == tab.lenObj)
+            code.put(Code.OpCode.arraylength);
+        else if (x.obj != tab.ordObj && x.obj != tab.chrObj){
+            code.put(Code.OpCode.call);
+            code.put2(x.adr - (code.pc-1));
+        }
+        x.kind = Operand.Kind.Stack;
 
         if (firstExpr.contains(sym)) {
             expr();
@@ -665,7 +673,7 @@ public final class ParserImpl extends Parser {
                     if (x.type == noType) {
                         this.error(INVALID_CALL);
                     }
-                    actpars();
+                    actpars(x);
                 }
                 break;
             case number:
