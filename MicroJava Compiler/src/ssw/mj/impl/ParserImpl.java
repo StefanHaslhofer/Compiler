@@ -557,7 +557,7 @@ public final class ParserImpl extends Parser {
             Operand y = expr();
             nPars++;
             if (it.hasNext() && !y.type.assignableTo(it.next().type)) {
-                this.error(INCOMP_TYPES);
+                this.error(PARAM_TYPE);
             }
             if (x.obj == tab.chrObj && y.type.kind != Struct.Kind.Int
                     || x.obj == tab.ordObj && y.type.kind != Struct.Kind.Char
