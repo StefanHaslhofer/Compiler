@@ -30,7 +30,7 @@ public class SimpleCodeGenerationTest extends CompilerTestCaseSupport {
     }
 
 
-    //@Test
+    @Test
     public void returnMethod() {
         init("program Test {" + LF + //
                 "  int method() { return 2; }" + LF + //
@@ -40,7 +40,7 @@ public class SimpleCodeGenerationTest extends CompilerTestCaseSupport {
                 "    print(i);" + LF + //
                 "  }" + LF + //
                 "}");
-        addExpectedRun("1");
+        addExpectedRun("2");
         parseAndVerify();
     }
 

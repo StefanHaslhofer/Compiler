@@ -247,6 +247,7 @@ public final class ParserImpl extends Parser {
         check(lpar);
 
         tab.openScope();
+        tab.curMethod = meth;
         if (sym == ident) {
             formPars(meth);
         }
@@ -445,13 +446,18 @@ public final class ParserImpl extends Parser {
                 scan();
                 if (firstExpr.contains(sym)) {
                     x = expr();
-                    if (true) {
-                        //this.error(RETURN_TYPE);
+                    code.load(x);
+                    if (tab.curMethod.type == noType) {
+                        this.error(RETURN_VOID);
+                    } else if(!x.type.assignableTo(tab.curMethod.type)) {
+                        this.error(RETURN_TYPE);
                     }
-                } else if (true) {
-                    //this.error(RETURN_VOID);
+                } else if (tab.curMethod.type != noType) {
+                    this.error(RETURN_NO_VAL);
                 }
                 check(semicolon);
+                code.put(Code.OpCode.exit);
+                code.put(Code.OpCode.return_);
                 break;
             case read:
                 scan();

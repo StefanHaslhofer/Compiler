@@ -11,6 +11,11 @@ import static ssw.mj.Errors.Message.*;
 public final class TabImpl extends Tab {
 
     /**
+     * The current method.
+     */
+    public Obj curMethod = null;
+
+    /**
      * Set up "universe" (= predefined names).
      */
     public TabImpl(Parser p) {
@@ -55,6 +60,7 @@ public final class TabImpl extends Tab {
     }
 
     public void closeScope() {
+        curMethod = null;
         curScope = curScope.outer();
         curLevel--;
     }
