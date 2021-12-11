@@ -12,7 +12,6 @@ import ssw.mj.symtab.Tab;
 
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
@@ -37,6 +36,8 @@ public final class ParserImpl extends Parser {
 
     private int errDist;
     private static final int ERR_DIST_THRESHOLD = 3;
+
+    private Obj curMethod = null;
 
     public ParserImpl(Scanner scanner) {
         super(scanner);
@@ -243,22 +244,21 @@ public final class ParserImpl extends Parser {
         }
         check(ident);
         String methodName = t.str;
-        Obj meth = tab.insert(Obj.Kind.Meth, methodName, type);
+        curMethod = tab.insert(Obj.Kind.Meth, methodName, type);
         check(lpar);
 
         tab.openScope();
-        tab.curMethod = meth;
         if (sym == ident) {
-            formPars(meth);
+            formPars(curMethod);
         }
         check(rpar);
 
         if (methodName.equals("main")) {
             code.mainpc = code.pc;
-            if (meth.nPars > 0) {
+            if (curMethod.nPars > 0) {
                 error(MAIN_WITH_PARAMS);
             }
-            if (!meth.type.equals(noType)) {
+            if (!curMethod.type.equals(noType)) {
                 error(MAIN_NOT_VOID);
             }
         }
@@ -271,17 +271,17 @@ public final class ParserImpl extends Parser {
             error(TOO_MANY_LOCALS);
         } else {
             // set local variables and parameters
-            meth.locals = tab.curScope.locals();
-            meth.adr = code.pc;
+            curMethod.locals = tab.curScope.locals();
+            curMethod.adr = code.pc;
             code.put(Code.OpCode.enter);
-            code.put(meth.nPars);
+            code.put(curMethod.nPars);
             code.put(tab.curScope.nVars());
         }
 
         block();
         tab.closeScope();
 
-        if (meth.type == Tab.noType) {
+        if (curMethod.type == Tab.noType) {
             code.put(Code.OpCode.exit);
             code.put(Code.OpCode.return_);
         } else { // end of function reached without a return statement
@@ -447,12 +447,12 @@ public final class ParserImpl extends Parser {
                 if (firstExpr.contains(sym)) {
                     x = expr();
                     code.load(x);
-                    if (tab.curMethod.type == noType) {
+                    if (curMethod.type == noType) {
                         this.error(RETURN_VOID);
-                    } else if(!x.type.assignableTo(tab.curMethod.type)) {
+                    } else if(!x.type.assignableTo(curMethod.type)) {
                         this.error(RETURN_TYPE);
                     }
-                } else if (tab.curMethod.type != noType) {
+                } else if (curMethod.type != noType) {
                     this.error(RETURN_NO_VAL);
                 }
                 check(semicolon);
