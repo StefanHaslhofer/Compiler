@@ -11,6 +11,8 @@ import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
 import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
@@ -81,7 +83,7 @@ public final class ParserImpl extends Parser {
         for (; ; ) {
             if (recoverDeclSet.contains(sym)) {
                 break;
-            } else if (sym == ident && tab.find(t.str).type != noType) {
+            } else if (sym == ident && t.kind == semicolon) {
                 break;
             }
 
@@ -380,9 +382,6 @@ public final class ParserImpl extends Parser {
                         this.error(INCOMP_TYPES);
                     }
                 } else if (sym == lpar) {
-                    if (x.kind != Operand.Kind.Meth) {
-                        this.error(NO_METH);
-                    }
                     actpars(x);
                 } else if (sym == pplus) {
                     if (x.type != intType) {
@@ -458,10 +457,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 check(lpar);
                 x = designator();
-                if (!code.isAssignable(x)) {
-                    this.error(NO_VAR);
-                }
-                if(!code.isReadable(x)) {
+                if (!code.isReadable(x)) {
                     this.error(READ_VALUE);
                 }
                 check(rpar);
@@ -535,20 +531,50 @@ public final class ParserImpl extends Parser {
     private void actpars(Operand x) {
         check(lpar);
 
+        if (x.kind != Operand.Kind.Meth) {
+            this.error(NO_METH);
+            x.obj = tab.noObj;
+        }
+
         if (x.obj == tab.lenObj)
             code.put(Code.OpCode.arraylength);
-        else if (x.obj != tab.ordObj && x.obj != tab.chrObj){
+        else if (x.obj != tab.ordObj && x.obj != tab.chrObj) {
             code.put(Code.OpCode.call);
-            code.put2(x.adr - (code.pc-1));
+            code.put2(x.adr - (code.pc - 1));
         }
+
         x.kind = Operand.Kind.Stack;
+        int nPars = 0;
+        Iterator<Obj> it = x.obj.locals.iterator();
 
         if (firstExpr.contains(sym)) {
-            expr();
+            Operand y = expr();
+            nPars++;
+            if (it.hasNext() && !y.type.assignableTo(it.next().type)) {
+                this.error(INCOMP_TYPES);
+            }
+            if (x.obj == tab.chrObj && y.type.kind != Struct.Kind.Int
+                    || x.obj == tab.ordObj && y.type.kind != Struct.Kind.Char
+                    || x.obj == tab.lenObj && y.type.kind != Struct.Kind.Arr) {
+                this.error(PARAM_TYPE);
+            }
+
             while (sym == comma) {
                 scan();
-                expr();
+                y = expr();
+
+                if (it.hasNext()  && !y.type.assignableTo(it.next().type)) {
+                    this.error(INCOMP_TYPES);
+                }
+                nPars++;
             }
+        }
+
+        // check if the method doesn´t have varargs
+        if (nPars < x.obj.nPars && !x.obj.hasVarArg) {
+            this.error(LESS_ACTUAL_PARAMS);
+        } else if (nPars > x.obj.nPars) {
+            this.error(MORE_ACTUAL_PARAMS);
         }
 
         if (sym == hash) {
@@ -589,16 +615,41 @@ public final class ParserImpl extends Parser {
     }
 
     private void condFact() {
-        expr();
-        relop();
-        expr();
+        Operand x = expr();
+        Code.OpCode c = relop();
+        Operand y = expr();
+        // check for compatibility
+        if(!x.type.compatibleWith(y.type)) {
+            this.error(INCOMP_TYPES);
+        } else if((y.type.isRefType() || x.type.isRefType())
+                && (c != Code.OpCode.jne && c != Code.OpCode.jeq)) {
+            this.error(EQ_CHECK); // assure that arrays and classes are only checked for (in)equality
+        }
     }
 
-    private void relop() {
-        if (firstRelop.contains(sym)) {
-            scan();
-        } else {
-            this.error(REL_OP);
+    private Code.OpCode relop() {
+        switch (sym) {
+            case eql:
+                scan();
+                return Code.OpCode.jeq;
+            case neq:
+                scan();
+                return Code.OpCode.jne;
+            case leq:
+                scan();
+                return Code.OpCode.jle;
+            case lss:
+                scan();
+                return Code.OpCode.jlt;
+            case geq:
+                scan();
+                return Code.OpCode.jge;
+            case gtr:
+                scan();
+                return Code.OpCode.jgt;
+            default:
+                this.error(REL_OP);
+                return Code.OpCode.nop;
         }
     }
 
@@ -667,9 +718,6 @@ public final class ParserImpl extends Parser {
             case ident:
                 x = designator();
                 if (sym == lpar) {
-                    if (x.kind != Operand.Kind.Meth) {
-                        this.error(NO_METH);
-                    }
                     if (x.type == noType) {
                         this.error(INVALID_CALL);
                     }
@@ -691,6 +739,10 @@ public final class ParserImpl extends Parser {
                 Obj obj = tab.find(t.str);
                 StructImpl type = obj.type;
 
+                if (obj.kind != Obj.Kind.Type) {
+                    this.error(NO_TYPE);
+                }
+
                 if (sym == lbrack) {
                     scan();
                     Operand y = expr();
@@ -708,10 +760,7 @@ public final class ParserImpl extends Parser {
                     type = new StructImpl(type);
                     check(rbrack);
                 } else {
-                    if (obj.kind != Obj.Kind.Type) {
-                        this.error(NO_TYPE);
-                    }
-                    if( obj.type.kind != Struct.Kind.Class) {
+                    if (obj.type.kind != Struct.Kind.Class) {
                         this.error(NO_CLASS_TYPE);
                     }
                     code.put(Code.OpCode.new_);
