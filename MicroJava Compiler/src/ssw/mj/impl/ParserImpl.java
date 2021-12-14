@@ -449,7 +449,7 @@ public final class ParserImpl extends Parser {
                     code.load(x);
                     if (curMethod.type == noType) {
                         this.error(RETURN_VOID);
-                    } else if(!x.type.assignableTo(curMethod.type)) {
+                    } else if (!x.type.assignableTo(curMethod.type)) {
                         this.error(RETURN_TYPE);
                     }
                 } else if (curMethod.type != noType) {
@@ -596,11 +596,11 @@ public final class ParserImpl extends Parser {
         int expectedVarargs = t.val;
         int actualVarargs = 0;
 
-        for(;;) {
+        for (; ; ) {
             if (firstExpr.contains(sym)) {
                 expr();
                 actualVarargs++;
-            } else if(sym == comma){
+            } else if (sym == comma) {
                 scan();
             } else {
                 break;
@@ -615,22 +615,29 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    private void condition() {
-        condTerm();
+    private Operand condition() {
+        Operand x = condTerm();
 
         while (sym == or) {
+            code.tjump(x);
             scan();
-            condTerm();
+            x.fLabel.here();
+            Operand y = condTerm();
+            x.fLabel = y.fLabel;
+            x.op = y.op;
         }
+
+        return x;
     }
 
     private Operand condTerm() {
         Operand x = condFact();
 
         while (sym == and) {
-            code.
+            code.fjump(x);
             scan();
             Operand y = condFact();
+            x.op = y.op;
         }
 
         return x;
@@ -638,41 +645,42 @@ public final class ParserImpl extends Parser {
 
     private Operand condFact() {
         Operand x = expr();
-        Code.OpCode c = relop();
+        Code.CompOp c = relop();
         Operand y = expr();
         // check for compatibility
-        if(!x.type.compatibleWith(y.type)) {
+        if (!x.type.compatibleWith(y.type)) {
             this.error(INCOMP_TYPES);
-        } else if((y.type.isRefType() || x.type.isRefType())
-                && (c != Code.OpCode.jne && c != Code.OpCode.jeq)) {
+        } else if ((y.type.isRefType() || x.type.isRefType())
+                && (c != Code.CompOp.ne && c != Code.CompOp.eq)) {
             this.error(EQ_CHECK); // assure that arrays and classes are only checked for (in)equality
         }
 
+        return new Operand(c, code);
     }
 
-    private Code.OpCode relop() {
+    private Code.CompOp relop() {
         switch (sym) {
             case eql:
                 scan();
-                return Code.OpCode.jeq;
+                return Code.CompOp.eq;
             case neq:
                 scan();
-                return Code.OpCode.jne;
+                return Code.CompOp.ne;
             case leq:
                 scan();
-                return Code.OpCode.jle;
+                return Code.CompOp.le;
             case lss:
                 scan();
-                return Code.OpCode.jlt;
+                return Code.CompOp.lt;
             case geq:
                 scan();
-                return Code.OpCode.jge;
+                return Code.CompOp.ge;
             case gtr:
                 scan();
-                return Code.OpCode.jgt;
+                return Code.CompOp.gt;
             default:
                 this.error(REL_OP);
-                return Code.OpCode.nop;
+                return null;
         }
     }
 

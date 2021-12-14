@@ -7,8 +7,7 @@ import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
-import static ssw.mj.Errors.Message.NO_VAL;
-import static ssw.mj.Errors.Message.NO_VAR;
+import static ssw.mj.Errors.Message.*;
 
 public final class CodeImpl extends Code {
 
@@ -16,16 +15,18 @@ public final class CodeImpl extends Code {
         super(p);
     }
 
-    public void fjump(Operand x) {
+    public void jump(Label l) {
+        l.put();
+    }
 
+    public void fjump(Operand x) {
+        put(OpCode.jmp.code() + CompOp.invert(x.op).ordinal());
+        jump(x.fLabel);
     }
 
     public void tjump(Operand x) {
-
-    }
-
-    public void jump(Label l) {
-
+        put(OpCode.jmp.code() + x.op.ordinal());
+        jump(x.tLabel);
     }
 
     public void load(Operand x) {

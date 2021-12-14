@@ -43,7 +43,7 @@ public final class LabelImpl extends Label {
         adr = code.pc;
     }
 
-    public void isDefined() {
-        return this.fixupList.;
+    public boolean isDefined() {
+        return this.adr != 0;
     }
 }
