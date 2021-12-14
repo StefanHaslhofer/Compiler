@@ -569,7 +569,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 y = expr();
 
-                if (it.hasNext()  && !y.type.assignableTo(it.next().type)) {
+                if (it.hasNext() && !y.type.assignableTo(it.next().type)) {
                     this.error(INCOMP_TYPES);
                 }
                 nPars++;
@@ -593,12 +593,25 @@ public final class ParserImpl extends Parser {
         check(hash);
         check(number);
 
-        if (firstExpr.contains(sym)) {
-            expr();
-            while (sym == comma) {
-                scan();
+        int expectedVarargs = t.val;
+        int actualVarargs = 0;
+
+        for(;;) {
+            if (firstExpr.contains(sym)) {
                 expr();
+                actualVarargs++;
+            } else if(sym == comma){
+                scan();
+            } else {
+                break;
             }
+        }
+
+        // check if number of expected varargs matches the actually present ones
+        if (actualVarargs < expectedVarargs) {
+            this.error(LESS_ACTUAL_VARARGS);
+        } else if (actualVarargs > expectedVarargs) {
+            this.error(MORE_ACTUAL_VARARGS);
         }
     }
 
@@ -611,16 +624,19 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    private void condTerm() {
-        condFact();
+    private Operand condTerm() {
+        Operand x = condFact();
 
         while (sym == and) {
+            code.
             scan();
-            condFact();
+            Operand y = condFact();
         }
+
+        return x;
     }
 
-    private void condFact() {
+    private Operand condFact() {
         Operand x = expr();
         Code.OpCode c = relop();
         Operand y = expr();
@@ -631,6 +647,7 @@ public final class ParserImpl extends Parser {
                 && (c != Code.OpCode.jne && c != Code.OpCode.jeq)) {
             this.error(EQ_CHECK); // assure that arrays and classes are only checked for (in)equality
         }
+
     }
 
     private Code.OpCode relop() {

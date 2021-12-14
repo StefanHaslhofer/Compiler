@@ -2,6 +2,7 @@ package ssw.mj.impl;
 
 import ssw.mj.Parser;
 import ssw.mj.codegen.Code;
+import ssw.mj.codegen.Label;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
@@ -15,7 +16,19 @@ public final class CodeImpl extends Code {
         super(p);
     }
 
-    void load(Operand x) {
+    public void fjump(Operand x) {
+
+    }
+
+    public void tjump(Operand x) {
+
+    }
+
+    public void jump(Label l) {
+
+    }
+
+    public void load(Operand x) {
         switch (x.kind) {
             case Con:
                 loadConst(x.val);
@@ -63,7 +76,7 @@ public final class CodeImpl extends Code {
         x.kind = Operand.Kind.Stack; // remember that value is now loaded
     }
 
-    void assign(Operand x, Operand y, OpCode c) {
+    public void assign(Operand x, Operand y, OpCode c) {
         // combine two operands via arithmetic operation if a opCode is given
         // otherwise simply load the second operand normal
         if(c != OpCode.nop) {
@@ -113,7 +126,7 @@ public final class CodeImpl extends Code {
         }
     }
 
-    void loadConst(int x) {
+    public void loadConst(int x) {
         switch (x) {
             case -1:
                 put(OpCode.const_m1);
@@ -143,7 +156,7 @@ public final class CodeImpl extends Code {
         }
     }
 
-    void storeConst(int x) {
+    public void storeConst(int x) {
         switch (x) {
             case 0:
                 put(OpCode.store_0);
@@ -167,7 +180,7 @@ public final class CodeImpl extends Code {
     /*
      * arithmetic operations for non local fields by value
      */
-    void arithmethicOpNonLocal(Operand x, int val, Code.OpCode c) {
+    public  void arithmethicOpNonLocal(Operand x, int val, Code.OpCode c) {
         // save for kind for later as it will be changed by load(x)
         Operand.Kind k = x.kind;
         if (k == Operand.Kind.Elem) {
@@ -193,7 +206,7 @@ public final class CodeImpl extends Code {
     /*
      * return true if a given operand is a variable, arrayelement or field
      */
-    boolean isAssignable(Operand x) {
+    public boolean isAssignable(Operand x) {
         return x.kind == Operand.Kind.Local || x.kind == Operand.Kind.Elem ||
                 x.kind == Operand.Kind.Static || x.kind == Operand.Kind.Fld;
     }
@@ -201,14 +214,14 @@ public final class CodeImpl extends Code {
     /*
      * return true if a given can be read
      */
-    boolean isReadable(Operand x) {
+    public boolean isReadable(Operand x) {
         return x.type.kind == Struct.Kind.Int || x.type.kind == Struct.Kind.Char;
     }
 
     /*
      * increment or decrement non local field by value
      */
-    void addToLocal(Operand x, int val) {
+    public void addToLocal(Operand x, int val) {
         put(Code.OpCode.inc);
         put(x.adr);
         put(val);
