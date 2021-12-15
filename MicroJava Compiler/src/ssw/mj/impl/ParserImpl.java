@@ -82,9 +82,7 @@ public final class ParserImpl extends Parser {
     private void recoverDecl() {
         this.error(INVALID_DECL);
         for (; ; ) {
-            if (recoverDeclSet.contains(sym)) {
-                break;
-            } else if (sym == ident && t.kind == semicolon) {
+            if (recoverDeclSet.contains(sym) || sym == ident && t.kind == semicolon) {
                 break;
             }
 
