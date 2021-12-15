@@ -463,12 +463,12 @@ public final class ParserImpl extends Parser {
                 break;
             case break_:
                 scan();
-                check(semicolon);
                 if(breakLabel == null) {
                     this.error(NO_LOOP);
                 } else {
                     code.jump(breakLabel);
                 }
+                check(semicolon);
                 break;
             case return_:
                 scan();
@@ -598,7 +598,7 @@ public final class ParserImpl extends Parser {
                 y = expr();
 
                 if (it.hasNext() && !y.type.assignableTo(it.next().type)) {
-                    this.error(INCOMP_TYPES);
+                    this.error(PARAM_TYPE);
                 }
                 nPars++;
             }
