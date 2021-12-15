@@ -7,7 +7,8 @@ import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
-import static ssw.mj.Errors.Message.*;
+import static ssw.mj.Errors.Message.NO_VAL;
+import static ssw.mj.Errors.Message.NO_VAR;
 
 public final class CodeImpl extends Code {
 

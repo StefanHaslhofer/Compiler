@@ -5,6 +5,7 @@ import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token;
 import ssw.mj.codegen.Code;
+import ssw.mj.codegen.Label;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Struct;
@@ -278,7 +279,7 @@ public final class ParserImpl extends Parser {
             code.put(tab.curScope.nVars());
         }
 
-        block();
+        block(null);
         tab.closeScope();
 
         if (curMethod.type == Tab.noType) {
@@ -330,12 +331,12 @@ public final class ParserImpl extends Parser {
         return type;
     }
 
-    private void block() {
+    private void block(Label breakLabel) {
         check(lbrace);
 
         for (; ; ) {
             if (firstStatement.contains(sym)) {
-                statement();
+                statement(breakLabel);
             } else if (sym == rbrace || sym == eof) {
                 break;
             } else {
@@ -345,7 +346,7 @@ public final class ParserImpl extends Parser {
         check(rbrace);
     }
 
-    private void statement() {
+    private void statement(Label breakLabel) {
         Operand x = null;
         if (!firstStatement.contains(sym)) {
             recoverStatement();
@@ -421,26 +422,53 @@ public final class ParserImpl extends Parser {
                 check(semicolon);
                 break;
             case if_:
+                Label end;
+
                 scan();
                 check(lpar);
-                condition();
+                x = condition();
+                code.fjump(x);
+                x.tLabel.here();
                 check(rpar);
-                statement();
+
+                statement(breakLabel);
                 if (sym == else_) {
+                    // jump to end if else is condition is also violated
+                    end = new LabelImpl(code);
+                    code.jump(end);
+                    x.fLabel.here();
                     scan();
-                    statement();
+                    statement(breakLabel);
+                    end.here();
+                } else {
+                    x.fLabel.here();
                 }
                 break;
             case while_:
                 scan();
+                breakLabel = new LabelImpl(code);
                 check(lpar);
-                condition();
+
+                Label top = new LabelImpl(code);
+                top.here();
+                x = condition();
+                code.fjump(x);
+                x.tLabel.here();
+
                 check(rpar);
-                statement();
+                statement(breakLabel);
+                code.jump(top);
+                x.fLabel.here();
+                breakLabel.here();
                 break;
             case break_:
                 scan();
                 check(semicolon);
+                if(breakLabel == null) {
+                    this.error(NO_LOOP);
+                } else {
+                    code.jump(breakLabel);
+                }
                 break;
             case return_:
                 scan();
@@ -502,7 +530,7 @@ public final class ParserImpl extends Parser {
                 check(semicolon);
                 break;
             case lbrace:
-                block();
+                block(breakLabel);
                 break;
             case semicolon:
                 scan();
@@ -655,6 +683,9 @@ public final class ParserImpl extends Parser {
             this.error(EQ_CHECK); // assure that arrays and classes are only checked for (in)equality
         }
 
+        if(c==null) {
+            c = Code.CompOp.eq;
+        }
         return new Operand(c, code);
     }
 

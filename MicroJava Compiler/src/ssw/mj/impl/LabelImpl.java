@@ -3,13 +3,12 @@ package ssw.mj.impl;
 import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Label;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class LabelImpl extends Label {
 
-    Code code;
-    List<Integer> fixupList;
-    int adr;
+    List<Integer> fixupList = new ArrayList<>();
 
     public LabelImpl(Code code) {
         super(code);
