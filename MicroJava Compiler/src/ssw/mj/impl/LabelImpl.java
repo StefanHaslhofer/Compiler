@@ -43,6 +43,6 @@ public final class LabelImpl extends Label {
     }
 
     public boolean isDefined() {
-        return this.adr != 0;
+        return this.adr > 0;
     }
 }

@@ -445,20 +445,21 @@ public final class ParserImpl extends Parser {
                 }
                 break;
             case while_:
-                scan();
                 breakLabel = new LabelImpl(code);
-                check(lpar);
 
+                scan();
+                check(lpar);
                 Label top = new LabelImpl(code);
                 top.here();
                 x = condition();
                 code.fjump(x);
                 x.tLabel.here();
-
                 check(rpar);
+
                 statement(breakLabel);
                 code.jump(top);
                 x.fLabel.here();
+
                 breakLabel.here();
                 break;
             case break_:
@@ -473,11 +474,12 @@ public final class ParserImpl extends Parser {
             case return_:
                 scan();
                 if (firstExpr.contains(sym)) {
-                    x = expr();
-                    code.load(x);
                     if (curMethod.type == noType) {
                         this.error(RETURN_VOID);
-                    } else if (!x.type.assignableTo(curMethod.type)) {
+                    }
+                    x = expr();
+                    code.load(x);
+                    if (!x.type.assignableTo(curMethod.type)) {
                         this.error(RETURN_TYPE);
                     }
                 } else if (curMethod.type != noType) {
@@ -577,6 +579,7 @@ public final class ParserImpl extends Parser {
             code.put2(x.adr - (code.pc - 1));
         }
 
+
         x.kind = Operand.Kind.Stack;
         int nPars = 0;
         Iterator<Obj> it = x.obj.locals.iterator();
@@ -673,8 +676,10 @@ public final class ParserImpl extends Parser {
 
     private Operand condFact() {
         Operand x = expr();
+        code.load(x);
         Code.CompOp c = relop();
         Operand y = expr();
+        code.load(y);
         // check for compatibility
         if (!x.type.compatibleWith(y.type)) {
             this.error(INCOMP_TYPES);

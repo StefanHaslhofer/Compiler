@@ -17,17 +17,18 @@ public final class CodeImpl extends Code {
     }
 
     public void jump(Label l) {
+        put(OpCode.jmp);
         l.put();
     }
 
     public void fjump(Operand x) {
-        put(OpCode.jmp.code() + CompOp.invert(x.op).ordinal());
-        jump(x.fLabel);
+        put(OpCode.jmp.code() + CompOp.invert(x.op).ordinal() + 1);
+        x.fLabel.put();
     }
 
     public void tjump(Operand x) {
-        put(OpCode.jmp.code() + x.op.ordinal());
-        jump(x.tLabel);
+        put(OpCode.jmp.code() + x.op.ordinal() + 1);
+        x.tLabel.put();
     }
 
     public void load(Operand x) {
@@ -81,7 +82,7 @@ public final class CodeImpl extends Code {
     public void assign(Operand x, Operand y, OpCode c) {
         // combine two operands via arithmetic operation if a opCode is given
         // otherwise simply load the second operand normal
-        if(c != OpCode.nop) {
+        if (c != OpCode.nop) {
             load(y);
             put(c);
         } else {
@@ -182,12 +183,12 @@ public final class CodeImpl extends Code {
     /*
      * arithmetic operations for non local fields by value
      */
-    public  void arithmethicOpNonLocal(Operand x, int val, Code.OpCode c) {
+    public void arithmethicOpNonLocal(Operand x, int val, Code.OpCode c) {
         // save for kind for later as it will be changed by load(x)
         Operand.Kind k = x.kind;
         if (k == Operand.Kind.Elem) {
             put(Code.OpCode.dup2);
-        } else if (k != Operand.Kind.Static){
+        } else if (k != Operand.Kind.Static) {
             put(Code.OpCode.dup);
         }
         load(x);
@@ -196,10 +197,10 @@ public final class CodeImpl extends Code {
 
         if (k == Operand.Kind.Elem) {
             put(Code.OpCode.astore);
-        } else if (k == Operand.Kind.Con || k == Operand.Kind.Local || k == Operand.Kind.Fld){
+        } else if (k == Operand.Kind.Con || k == Operand.Kind.Local || k == Operand.Kind.Fld) {
             put(OpCode.putfield);
             put2(x.adr);
-        } else{
+        } else {
             put(OpCode.putstatic);
             put2(x.adr);
         }
