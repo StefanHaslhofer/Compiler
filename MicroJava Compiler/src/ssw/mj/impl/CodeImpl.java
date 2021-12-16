@@ -88,44 +88,23 @@ public final class CodeImpl extends Code {
         } else {
             load(y);
         }
-        switch (x.kind) {
-            case Local:
-                switch (x.adr) {
-                    case 0:
-                        put(OpCode.store_0);
-                        break;
-                    case 1:
-                        put(OpCode.store_1);
-                        break;
-                    case 2:
-                        put(OpCode.store_2);
-                        break;
-                    case 3:
-                        put(OpCode.store_3);
-                        break;
-                    default:
-                        put(OpCode.store);
-                        put(x.adr);
-                        break;
-                }
-                break;
-            case Static:
-                put(OpCode.putstatic);
-                put2(x.adr);
-                break;
-            case Fld:
-                put(OpCode.putfield);
-                put2(x.adr);
-                break;
-            case Elem:
-                if (x.type == Tab.charType) {
-                    put(OpCode.bastore);
-                } else {
-                    put(OpCode.astore);
-                }
-                break;
-            default:
-                parser.error(NO_VAR);
+        store(x);
+    }
+
+    /**
+     * push an array on stack
+     *
+     * if size is less than one we can assume it has already been set
+     */
+    public void generateArray(int size, StructImpl type) {
+        if(size >= 0) {
+            loadConst(size);
+        }
+        put(Code.OpCode.newarray);
+        if (type == Tab.charType) {
+            put(0);
+        } else {
+            put(1);
         }
     }
 
@@ -159,28 +138,45 @@ public final class CodeImpl extends Code {
         }
     }
 
-    public void storeConst(int x) {
-        switch (x) {
-            case 0:
-                put(OpCode.store_0);
+    public void store(Operand x) {
+        switch (x.kind) {
+            case Local:
+                switch (x.adr) {
+                    case 0:
+                        put(OpCode.store_0);
+                        break;
+                    case 1:
+                        put(OpCode.store_1);
+                        break;
+                    case 2:
+                        put(OpCode.store_2);
+                        break;
+                    case 3:
+                        put(OpCode.store_3);
+                        break;
+                    default:
+                        put(OpCode.store);
+                        put(x.adr);
+                        break;
+                }
                 break;
-            case 1:
-                put(OpCode.store_1);
+            case Static:
+                put(OpCode.putstatic);
+                put2(x.adr);
                 break;
-            case 2:
-                put(OpCode.store_2);
+            case Fld:
+                put(OpCode.putfield);
+                put2(x.adr);
                 break;
-            case 3:
-                put(OpCode.store_3);
+            case Elem:
+                storeArray(x.type);
                 break;
             default:
-                put(OpCode.store);
-                put(x);
-                break;
+                parser.error(NO_VAR);
         }
     }
 
-    /*
+    /**
      * arithmetic operations for non local fields by value
      */
     public void arithmethicOpNonLocal(Operand x, int val, Code.OpCode c) {
@@ -206,7 +202,7 @@ public final class CodeImpl extends Code {
         }
     }
 
-    /*
+    /**
      * return true if a given operand is a variable, arrayelement or field
      */
     public boolean isAssignable(Operand x) {
@@ -214,19 +210,30 @@ public final class CodeImpl extends Code {
                 x.kind == Operand.Kind.Static || x.kind == Operand.Kind.Fld;
     }
 
-    /*
+    /**
      * return true if a given can be read
      */
     public boolean isReadable(Operand x) {
         return x.type.kind == Struct.Kind.Int || x.type.kind == Struct.Kind.Char;
     }
 
-    /*
+    /**
      * increment or decrement non local field by value
      */
     public void addToLocal(Operand x, int val) {
         put(Code.OpCode.inc);
         put(x.adr);
         put(val);
+    }
+
+    /**
+     * store into array
+     */
+    public void storeArray(StructImpl type) {
+        if (type == Tab.charType) {
+            put(OpCode.bastore);
+        } else {
+            put(OpCode.astore);
+        }
     }
 }

@@ -356,7 +356,6 @@ public final class ParserImpl extends Parser {
                 x = designator();
                 if (firstAssignop.contains(sym)) {
                     Code.OpCode c = assignop();
-
                     // check if it is possible to perform an arithmetic operation with the designator
                     if (c != Code.OpCode.nop) {
                         if (!code.isAssignable(x)) {
@@ -367,6 +366,12 @@ public final class ParserImpl extends Parser {
                             code.put(Code.OpCode.dup2);
                             code.put(Code.OpCode.aload);
                         } else {
+                            // if the Operand is a field it is already loaded
+                            if(x.kind != Operand.Kind.Fld) {
+                                Operand.Kind k = x.kind;
+                                code.load(x);
+                                x.kind = k;
+                            }
                             code.put(Code.OpCode.dup);
                         }
                     }
@@ -428,8 +433,8 @@ public final class ParserImpl extends Parser {
                 check(lpar);
                 x = condition();
                 code.fjump(x);
-                x.tLabel.here();
                 check(rpar);
+                x.tLabel.here();
 
                 statement(breakLabel);
                 if (sym == else_) {
@@ -493,18 +498,22 @@ public final class ParserImpl extends Parser {
                 scan();
                 check(lpar);
                 x = designator();
+                Operand.Kind k = x.kind;
+
                 if (!code.isReadable(x)) {
                     this.error(READ_VALUE);
                 }
                 check(rpar);
                 check(semicolon);
+
                 code.load(x);
+                x.kind = k;
                 if (x.type.kind == Struct.Kind.Int) {
                     code.put(Code.OpCode.read);
                 } else if (x.type.kind == Struct.Kind.Char) {
                     code.put(Code.OpCode.bread);
                 }
-                code.storeConst(x.adr);
+                code.store(x);
                 break;
             case print:
                 scan();
@@ -572,13 +581,6 @@ public final class ParserImpl extends Parser {
             x.obj = tab.noObj;
         }
 
-        if (x.obj == tab.lenObj)
-            code.put(Code.OpCode.arraylength);
-        else if (x.obj != tab.ordObj && x.obj != tab.chrObj) {
-            code.put(Code.OpCode.call);
-            code.put2(x.adr - (code.pc - 1));
-        }
-
 
         x.kind = Operand.Kind.Stack;
         int nPars = 0;
@@ -596,6 +598,8 @@ public final class ParserImpl extends Parser {
                 this.error(PARAM_TYPE);
             }
 
+            code.load(y);
+
             while (sym == comma) {
                 scan();
                 y = expr();
@@ -603,6 +607,8 @@ public final class ParserImpl extends Parser {
                 if (it.hasNext() && !y.type.assignableTo(it.next().type)) {
                     this.error(PARAM_TYPE);
                 }
+
+                code.load(y);
                 nPars++;
             }
         }
@@ -615,21 +621,44 @@ public final class ParserImpl extends Parser {
         }
 
         if (sym == hash) {
-            varargs();
+            varargs(it.next().type.elemType);
+            if(!x.obj.hasVarArg) {
+                this.error(INVALID_VARARG_CALL);
+            }
+        }
+
+        if (x.obj == tab.lenObj)
+            code.put(Code.OpCode.arraylength);
+        else if (x.obj != tab.ordObj && x.obj != tab.chrObj) {
+            code.put(Code.OpCode.call);
+            code.put2(x.adr - (code.pc - 1));
         }
         check(rpar);
     }
 
-    private void varargs() {
+    private void varargs(StructImpl varargType) {
         check(hash);
         check(number);
 
         int expectedVarargs = t.val;
+
+        // generate array with the size of varargs
+        code.generateArray(expectedVarargs, varargType);
+
         int actualVarargs = 0;
 
         for (; ; ) {
             if (firstExpr.contains(sym)) {
-                expr();
+                code.put(Code.OpCode.dup);
+                code.loadConst(actualVarargs);
+                Operand y = expr();
+
+                if(!y.type.assignableTo(varargType)) {
+                    this.error(INCOMP_TYPES);
+                }
+
+                code.load(y);
+                code.storeArray(varargType);
                 actualVarargs++;
             } else if (sym == comma) {
                 scan();
@@ -816,14 +845,10 @@ public final class ParserImpl extends Parser {
                     if (y.type != intType) {
                         this.error(ARRAY_SIZE);
                     }
+
+
                     code.load(y);
-                    code.put(Code.OpCode.newarray);
-                    // if char array allocate bytes otherwise words
-                    if (type == Tab.charType) {
-                        code.put(0);
-                    } else {
-                        code.put(1);
-                    }
+                    code.generateArray(-1, type);
                     type = new StructImpl(type);
                     check(rbrack);
                 } else {
