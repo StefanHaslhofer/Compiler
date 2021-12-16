@@ -367,7 +367,7 @@ public final class ParserImpl extends Parser {
                             code.put(Code.OpCode.aload);
                         } else {
                             // if the Operand is a field it is already loaded
-                            if(x.kind != Operand.Kind.Fld) {
+                            if (x.kind != Operand.Kind.Fld) {
                                 Operand.Kind k = x.kind;
                                 code.load(x);
                                 x.kind = k;
@@ -469,7 +469,7 @@ public final class ParserImpl extends Parser {
                 break;
             case break_:
                 scan();
-                if(breakLabel == null) {
+                if (breakLabel == null) {
                     this.error(NO_LOOP);
                 } else {
                     code.jump(breakLabel);
@@ -604,7 +604,8 @@ public final class ParserImpl extends Parser {
                 scan();
                 y = expr();
 
-                if (it.hasNext() && !y.type.assignableTo(it.next().type)) {
+                // don´t check the last parameter type if the method has a vararg parameter
+                if (it.hasNext() && !y.type.assignableTo(it.next().type) && (!x.obj.hasVarArg || it.hasNext())) {
                     this.error(PARAM_TYPE);
                 }
 
@@ -620,58 +621,69 @@ public final class ParserImpl extends Parser {
             this.error(MORE_ACTUAL_PARAMS);
         }
 
-        if (sym == hash) {
-            varargs(it.next().type.elemType);
-            if(!x.obj.hasVarArg) {
-                this.error(INVALID_VARARG_CALL);
-            }
+        if (x.obj.hasVarArg && sym == hash) {
+            varargs(it.next());
+        } else if (!x.obj.hasVarArg && sym == hash) {
+            varargs(tab.noObj);
+            this.error(INVALID_VARARG_CALL);
+        } else if (x.obj.hasVarArg) {
+            varargs(tab.noObj);
         }
 
-        if (x.obj == tab.lenObj)
+        if (x.obj == tab.lenObj) {
             code.put(Code.OpCode.arraylength);
-        else if (x.obj != tab.ordObj && x.obj != tab.chrObj) {
+        } else if (x.obj != tab.ordObj && x.obj != tab.chrObj) {
             code.put(Code.OpCode.call);
             code.put2(x.adr - (code.pc - 1));
         }
         check(rpar);
     }
 
-    private void varargs(StructImpl varargType) {
-        check(hash);
-        check(number);
+    private void varargs(Obj x) {
+        int expectedVarargs = 0;
+        // only check vararg if a vararg is actually present
+        if (sym == hash) {
+            scan();
+            check(number);
 
-        int expectedVarargs = t.val;
+            expectedVarargs = t.val;
 
-        // generate array with the size of varargs
-        code.generateArray(expectedVarargs, varargType);
 
-        int actualVarargs = 0;
+            // generate array with the size of varargs
+            code.generateArray(expectedVarargs, x.type.elemType);
 
-        for (; ; ) {
-            if (firstExpr.contains(sym)) {
-                code.put(Code.OpCode.dup);
-                code.loadConst(actualVarargs);
-                Operand y = expr();
+            int actualVarargs = 0;
 
-                if(!y.type.assignableTo(varargType)) {
-                    this.error(INCOMP_TYPES);
+            for (; ; ) {
+                if (firstExpr.contains(sym)) {
+                    code.put(Code.OpCode.dup);
+                    code.loadConst(actualVarargs);
+                    Operand y = expr();
+
+                    if (!y.type.assignableTo(x.type.elemType) && x != tab.noObj) {
+                        this.error(PARAM_TYPE);
+                    }
+
+                    code.load(y);
+                    code.storeArray(x.type.elemType);
+                    actualVarargs++;
+                } else if (sym == comma) {
+                    scan();
+                } else {
+                    break;
                 }
-
-                code.load(y);
-                code.storeArray(varargType);
-                actualVarargs++;
-            } else if (sym == comma) {
-                scan();
-            } else {
-                break;
             }
-        }
 
-        // check if number of expected varargs matches the actually present ones
-        if (actualVarargs < expectedVarargs) {
-            this.error(LESS_ACTUAL_VARARGS);
-        } else if (actualVarargs > expectedVarargs) {
-            this.error(MORE_ACTUAL_VARARGS);
+            // check if number of expected varargs matches the actually present ones
+            if (actualVarargs < expectedVarargs) {
+                this.error(LESS_ACTUAL_VARARGS);
+            } else if (actualVarargs > expectedVarargs) {
+                this.error(MORE_ACTUAL_VARARGS);
+            }
+
+        } else {
+            // generate array with the size of varargs
+            code.generateArray(expectedVarargs, x.type.elemType);
         }
     }
 
@@ -717,7 +729,7 @@ public final class ParserImpl extends Parser {
             this.error(EQ_CHECK); // assure that arrays and classes are only checked for (in)equality
         }
 
-        if(c==null) {
+        if (c == null) {
             c = Code.CompOp.eq;
         }
         return new Operand(c, code);

@@ -31,6 +31,7 @@ public final class TabImpl extends Tab {
         i.level = 1;
         chr.locals = curScope.locals();
         closeScope();
+        chrObj = chr;
 
         Obj ord = insert(Obj.Kind.Meth, "ord", intType);
         ord.nPars++;
@@ -39,6 +40,7 @@ public final class TabImpl extends Tab {
         ch.level = 1;
         ord.locals = curScope.locals();
         closeScope();
+        ordObj = ord;
 
         Obj len = insert(Obj.Kind.Meth, "len", intType);
         len.nPars++;
@@ -47,6 +49,7 @@ public final class TabImpl extends Tab {
         arr.level = 1;
         len.locals = curScope.locals();
         closeScope();
+        lenObj = len;
     }
 
     public void openScope() {
